@@ -45,38 +45,60 @@ public class Player {
         int newX = x + deltaX;
         int newY = y + deltaY;
 
+        System.out.println("Attempting to move player to: (" + newX + ", " + newY + ")");
+
         if (isInBounds(newX, newY)) {
             Cell targetCell = currentBoard.getCell(newX, newY, true);
-            if (targetCell.getState() == CellState.EMPTY) {
-                // Clear the current player position in the foreground layer
+
+            System.out.println("Target cell state: " + targetCell.getState());
+
+            // Revisar si la casilla destino está vacía o es un portal
+            if (targetCell.getState() == CellState.EMPTY || targetCell.getState() == CellState.BOARDSWITCH) {
+                System.out.println("Target cell is empty or a portal");
+
+                // Limpiar la posición actual del jugador en la capa de primer plano
                 currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true, -1);
-                // Clear the current player position in the background layer (if necessary)
+                // Limpiar la posición actual del jugador en la capa de fondo (si es necesario)
                 currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, false, -1);
 
-                // Update player's new position in the foreground layer
-                x = newX;
-                y = newY;
-                currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1);
-            } else if (targetCell.getState() == CellState.BOARDSWITCH) {
-                // Handle portal transition
-                int portalLinkId = targetCell.getPortalLinkId();
-                Board targetBoard = map.getBoardByPortalLinkId(portalLinkId);
+                if (targetCell.getState() == CellState.BOARDSWITCH) {
+                    System.out.println("Entering portal");
 
-                if (targetBoard != null) {
-                    // Clear the current player position in the foreground layer
-                    currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true, -1);
-                    // Clear the current player position in the background layer (if necessary)
-                    currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, false, -1);
+                    // Manejar la transición del portal
+                    int portalLinkId = targetCell.getPortalLinkId();
+                    System.out.println("Portal link ID: " + portalLinkId);
 
-                    // Move to the new board
-                    currentBoard = targetBoard;
-                    x = 4;  // Example target position
-                    y = 4;  // Example target position
+                    Board targetBoard = currentBoard.getPortalLink(portalLinkId);
 
-                    // Set player's position in the new board's foreground layer
-                    currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1);
+                    if (targetBoard != null) {
+                        System.out.println("Switching to new board: " + targetBoard.getName());
+
+                        // Mover al nuevo tablero
+                        x = 4; // Posición de destino de ejemplo
+                        y = 4; // Posición de destino de ejemplo
+
+                        // Limpiar la nueva posición del jugador en el tablero actual antes de cambiar
+                        targetBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true, -1);
+
+                        // Cambiar al nuevo tablero
+                        currentBoard = targetBoard;
+                        map.setCurrentBoard(targetBoard.getName()); // Suponiendo que Board tiene getName()
+                    } else {
+                        System.out.println("Target board is null");
+                    }
+                } else {
+                    // Actualizar la nueva posición del jugador en la capa de primer plano
+                    x = newX;
+                    y = newY;
                 }
+
+                // Establecer la posición del jugador en la capa de primer plano
+                currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1);
+            } else {
+                System.out.println("Target cell is not empty or a portal");
             }
+        } else {
+            System.out.println("New position is out of bounds");
         }
     }
 

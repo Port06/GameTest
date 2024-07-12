@@ -12,16 +12,16 @@ import java.util.concurrent.TimeUnit;
 public class Game extends JFrame {
     private GameMap map;
     private Player player;
-    private double scale = 2.0;  // Scaling factor for the board
+    private double scale = 1.5;  // Scaling factor for the board
     private BufferedImage offscreen;
 
     public Game() {
         map = new GameMap();
-        Board board1 = new Board(24, 24, map);
+        Board board1 = new Board(32, 32, map);
         Board board2 = new Board(12, 12, map);
 
         // Set up some WALL cells for testing
-        for (int i = 0; i < 24; i++) {
+        for (int i = 0; i < 32; i++) {
             board1.setCellState(0, i, CellState.WALL.getType(), i % 12, true,-1);
             
             if (i % 2 == 0) {
@@ -30,14 +30,15 @@ public class Game extends JFrame {
         }
         
         // Configurar portales y sus enlaces
-        map.addPortalLink(0, "board2");  // Vincula el portal con ID 0 a "board2"
-        map.addPortalLink(1, "board1");  // Vincula el portal con ID 1 a "board1"
-
         board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 0); // Añadir portal en board1 con link ID 0
         board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 1); // Añadir portal en board2 con link ID 1
 
         map.addBoard("board1", board1);
         map.addBoard("board2", board2);
+
+        // Asegúrate de vincular correctamente los portales
+        board1.setPortalLink(0, board2);
+        board2.setPortalLink(1, board1);
 
         map.setCurrentBoard("board1");
         player = new Player(4, 4, board1, 5, map);
@@ -102,7 +103,8 @@ public class Game extends JFrame {
         int boardWidth = currentBoard.getWidth() * tileSize;
         int boardHeight = currentBoard.getHeight() * tileSize;
         int startX = (getWidth() - boardWidth) / 2;
-        int startY = (getHeight() - boardHeight) / 2;
+        int offsetY = 10; // Example offset in pixels
+        int startY = (getHeight() - boardHeight) / 2 + offsetY; // Apply the offset
 
         // Draw the background layer
         for (int x = 0; x < currentBoard.getWidth(); x++) {

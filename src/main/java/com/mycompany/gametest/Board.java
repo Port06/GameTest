@@ -76,6 +76,15 @@ public class Board extends JPanel {
         return null;
     }
     
+    public String getName() {
+    for (Map.Entry<String, Board> entry : gameMap.getBoards().entrySet()) {
+        if (entry.getValue().equals(this)) {
+            return entry.getKey();
+        }
+    }
+    return null;
+}
+    
     public void setPortalLink(int portalLinkId, Board targetBoard) {
         portalLinks.put(portalLinkId, targetBoard);
     }

@@ -1,6 +1,5 @@
 package com.mycompany.gametest;
 
-import javax.swing.JPanel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,5 +50,10 @@ public class GameMap {
         } else {
             System.out.println("Error: Board or target board not found.");
         }
+    }
+
+    // Método para obtener el mapa de tableros
+    public Map<String, Board> getBoards() {
+        return boards;
     }
 }
