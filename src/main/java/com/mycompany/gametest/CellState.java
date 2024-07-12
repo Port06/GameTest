@@ -1,0 +1,44 @@
+package com.mycompany.gametest;
+
+import java.awt.image.BufferedImage;
+
+public enum CellState {
+    EMPTY(0, 0),
+    WALL(1, 0),
+    PLAYER(2, 0);
+
+    private int type;
+    private int texture;
+
+    CellState(int type, int texture) {
+        this.type = type;
+        this.texture = texture;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public int getTexture() {
+        return texture;
+    }
+
+    public static BufferedImage getTexture(Cell cell) {
+        CellState state = cell.getState();
+        int textureId = cell.getTextureId();
+        return Assets.getTexture(state, textureId);
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public static CellState getByTypeAndTexture(int type, int texture) {
+        for (CellState state : values()) {
+            if (state.getType() == type && state.getTexture() == texture) {
+                return state;
+            }
+        }
+        return EMPTY;  // Default to EMPTY if not found
+    }
+}
