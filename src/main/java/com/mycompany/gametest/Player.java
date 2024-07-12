@@ -11,16 +11,18 @@ public class Player {
     private int currentTextureId;
     private int totalTextures;
     private ScheduledExecutorService animationScheduler;
+    private GameMap map; // Add a reference to GameMap
 
-    public Player(int startX, int startY, Board startBoard, int totalTextures) {
+    public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map) {
         this.x = startX;
         this.y = startY;
         this.currentBoard = startBoard;
         this.totalTextures = totalTextures;
         this.currentTextureId = 0; // Start with the first texture
+        this.map = map; // Initialize the GameMap reference
 
         // Set the initial state in the foreground layer
-        this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true);
+        this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1);
 
         // Initialize the animation scheduler
         initAnimation();
@@ -36,18 +38,45 @@ public class Player {
         currentTextureId = (currentTextureId + 1) % totalTextures;
 
         // Update the board with the new texture ID in the foreground layer
-        currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true);
+        currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1);
     }
 
     public void move(int deltaX, int deltaY) {
         int newX = x + deltaX;
         int newY = y + deltaY;
 
-        if (isInBounds(newX, newY) && currentBoard.getCell(newX, newY, true).getState() == CellState.EMPTY) {
-            currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true); // Clear the current position in the foreground layer
-            x = newX;
-            y = newY;
-            currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true); // Set the new position in the foreground layer
+        if (isInBounds(newX, newY)) {
+            Cell targetCell = currentBoard.getCell(newX, newY, true);
+            if (targetCell.getState() == CellState.EMPTY) {
+                // Clear the current player position in the foreground layer
+                currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true, -1);
+                // Clear the current player position in the background layer (if necessary)
+                currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, false, -1);
+
+                // Update player's new position in the foreground layer
+                x = newX;
+                y = newY;
+                currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1);
+            } else if (targetCell.getState() == CellState.BOARDSWITCH) {
+                // Handle portal transition
+                int portalLinkId = targetCell.getPortalLinkId();
+                Board targetBoard = map.getBoardByPortalLinkId(portalLinkId);
+
+                if (targetBoard != null) {
+                    // Clear the current player position in the foreground layer
+                    currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true, -1);
+                    // Clear the current player position in the background layer (if necessary)
+                    currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, false, -1);
+
+                    // Move to the new board
+                    currentBoard = targetBoard;
+                    x = 4;  // Example target position
+                    y = 4;  // Example target position
+
+                    // Set player's position in the new board's foreground layer
+                    currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1);
+                }
+            }
         }
     }
 

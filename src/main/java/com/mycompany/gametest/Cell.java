@@ -1,14 +1,14 @@
 package com.mycompany.gametest;
 
-import java.awt.image.BufferedImage;
-
 public class Cell {
     private CellState state;
-    private int textureId; // Texture ID for WALL cells
+    private int textureId;
+    private int portalLinkId;  // Identificador de portal para vincular los portales
 
     public Cell(CellState state, int textureId) {
         this.state = state;
         this.textureId = textureId;
+        this.portalLinkId = -1;  // Valor predeterminado para células que no son portales
     }
 
     public CellState getState() {
@@ -25,5 +25,13 @@ public class Cell {
 
     public void setTextureId(int textureId) {
         this.textureId = textureId;
+    }
+
+    public int getPortalLinkId() {
+        return portalLinkId;
+    }
+
+    public void setPortalLinkId(int portalLinkId) {
+        this.portalLinkId = portalLinkId;
     }
 }

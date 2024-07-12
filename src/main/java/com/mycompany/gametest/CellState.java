@@ -5,7 +5,8 @@ import java.awt.image.BufferedImage;
 public enum CellState {
     EMPTY(0, 0),
     WALL(1, 0),
-    PLAYER(2, 0);
+    PLAYER(2, 0),
+    BOARDSWITCH(3, 0);
 
     private int type;
     private int texture;
