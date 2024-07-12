@@ -12,14 +12,16 @@ public class Player {
     private int totalTextures;
     private ScheduledExecutorService animationScheduler;
     private GameMap map; // Add a reference to GameMap
+     private Game game; // Add a reference to the Game
 
-    public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map) {
+    public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map,  Game game) {
         this.x = startX;
         this.y = startY;
         this.currentBoard = startBoard;
         this.totalTextures = totalTextures;
         this.currentTextureId = 0; // Start with the first texture
         this.map = map; // Initialize the GameMap reference
+         this.game = game; // Initialize the Game reference
 
         // Set the initial state in the foreground layer
         this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1, -1);
@@ -92,6 +94,9 @@ public class Player {
                             // Change to the new board
                             currentBoard = targetBoard;
                             map.setCurrentBoard(targetBoard.getName());
+                            
+                            game.addTextBox("Has cambiado al tablero: " + targetBoard.getName(), 250, 50, 300, 20);
+                            
                         } else {
                             System.out.println("Entry portal not found in target board");
                         }

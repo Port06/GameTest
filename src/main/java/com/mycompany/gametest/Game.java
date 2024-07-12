@@ -8,12 +8,18 @@ import java.awt.image.BufferedImage;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Game extends JFrame {
     private GameMap map;
     private Player player;
     private double scale = 1.5;  // Scaling factor for the board
     private BufferedImage offscreen;
+    
+    public Queue<TextBox> textBoxQueue = new LinkedList<>(); // Use a queue for TextBoxes
+    private TextBox currentTextBox; // Track the currently displayed TextBox
+
 
     public Game() {
         map = new GameMap();
@@ -33,15 +39,15 @@ public class Game extends JFrame {
         board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 0, 1); // Añadir portal en board1 con link ID 0
         board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 1, 0); // Añadir portal en board2 con link ID 1
 
-        map.addBoard("board1", board1);
-        map.addBoard("board2", board2);
+        map.addBoard("MainBoard", board1);
+        map.addBoard("SubBoard", board2);
 
         // Asegúrate de vincular correctamente los portales
         board1.setPortalLink(0, board2);
         board2.setPortalLink(1, board1);
 
-        map.setCurrentBoard("board1");
-        player = new Player(4, 4, board1, 5, map);
+        map.setCurrentBoard("MainBoard");
+        player = new Player(4, 4, board1, 5, map, this);
 
         Assets.init();  // Initialize textures
 
@@ -80,6 +86,35 @@ public class Game extends JFrame {
         scheduler.scheduleAtFixedRate(this::repaint, 0, 400, TimeUnit.MILLISECONDS);
 
         setVisible(true);
+    }
+    
+    public void addTextBox(String message, int x, int y, int width, int height) {
+        TextBox textBox = new TextBox(x, y, width, height); // Create TextBox with specified parameters
+        textBox.setText(message);
+        textBoxQueue.add(textBox); // Add to the queue
+
+        // If there's no current TextBox, display this one immediately
+        if (currentTextBox == null) {
+            displayNextTextBox();
+        }
+    }
+    
+     private void displayNextTextBox() {
+        if (!textBoxQueue.isEmpty()) {
+            currentTextBox = textBoxQueue.poll();
+            currentTextBox.show();
+
+            // Determine the duration based on the queue size
+            int queueSize = textBoxQueue.size();
+            long displayDuration = Math.max(3000 - (queueSize * 2250), 500); // Base time of 3000ms, decrease by 500ms per item, min 1000ms
+
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler.schedule(() -> {
+                currentTextBox.hide();
+                currentTextBox = null; // Clear current TextBox
+                displayNextTextBox(); // Display the next TextBox
+            }, displayDuration, TimeUnit.MILLISECONDS); // Adjusted duration
+        }
     }
 
     @Override
@@ -133,6 +168,11 @@ public class Game extends JFrame {
         if (playerTexture != null) {
             g2d.setComposite(AlphaComposite.SrcOver);
             g2d.drawImage(playerTexture, startX + player.getX() * tileSize, startY + player.getY() * tileSize, tileSize, tileSize, null);
+        }
+        
+        // Draw the current TextBox if it exists
+        if (currentTextBox != null) {
+            currentTextBox.draw(g2d); // Draw only the current TextBox
         }
 
         // Draw the offscreen image to the screen
