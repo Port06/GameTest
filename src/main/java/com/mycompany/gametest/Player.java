@@ -12,7 +12,9 @@ public class Player {
     private int totalTextures;
     private ScheduledExecutorService animationScheduler;
     private GameMap map; // Add a reference to GameMap
-     private Game game; // Add a reference to the Game
+    private Game game; // Add a reference to the Game
+    private long lastMoveTime; // Store the last move time
+    private static final long MOVE_COOLDOWN = 500; // Cooldown period in milliseconds
 
     public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map,  Game game) {
         this.x = startX;
@@ -21,7 +23,8 @@ public class Player {
         this.totalTextures = totalTextures;
         this.currentTextureId = 0; // Start with the first texture
         this.map = map; // Initialize the GameMap reference
-         this.game = game; // Initialize the Game reference
+        this.game = game; // Initialize the Game reference
+        this.lastMoveTime = 0; // Initialize the last move time
 
         // Set the initial state in the foreground layer
         this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1, -1);
@@ -44,6 +47,11 @@ public class Player {
     }
 
     public void move(int deltaX, int deltaY) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastMoveTime < MOVE_COOLDOWN) {
+            return; // Do not allow movement if the cooldown period has not passed
+        }
+
         int newX = x + deltaX;
         int newY = y + deltaY;
 
@@ -111,6 +119,9 @@ public class Player {
 
                 // Set the player's position in the foreground layer
                 currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1, -1);
+
+                // Update the last move time
+                lastMoveTime = System.currentTimeMillis();
             }
         }
     }
