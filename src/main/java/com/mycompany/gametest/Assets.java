@@ -26,6 +26,7 @@ public class Assets {
         loadTexturesFromDirectory("/grass", CellState.EMPTY);
         loadTexturesFromDirectory("/rocks", CellState.WALL);
         loadTexturesFromDirectory("/player", CellState.PLAYER);
+        loadTexturesFromDirectory("/trees", CellState.WALL);
     }
 
     private static void loadTexturesFromDirectory(String directoryPath, CellState state) {

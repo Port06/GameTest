@@ -19,8 +19,8 @@ public class Player {
         this.totalTextures = totalTextures;
         this.currentTextureId = 0; // Start with the first texture
 
-        // Set the initial state
-        this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId);
+        // Set the initial state in the foreground layer
+        this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true);
 
         // Initialize the animation scheduler
         initAnimation();
@@ -28,26 +28,26 @@ public class Player {
 
     private void initAnimation() {
         animationScheduler = Executors.newSingleThreadScheduledExecutor();
-        animationScheduler.scheduleAtFixedRate(this::updateTexture, 0, 500, TimeUnit.MILLISECONDS);
+        animationScheduler.scheduleAtFixedRate(this::updateTexture, 0, 400, TimeUnit.MILLISECONDS);
     }
 
     private void updateTexture() {
         // Update the texture ID
         currentTextureId = (currentTextureId + 1) % totalTextures;
 
-        // Update the board with the new texture ID
-        currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId);
+        // Update the board with the new texture ID in the foreground layer
+        currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true);
     }
 
     public void move(int deltaX, int deltaY) {
         int newX = x + deltaX;
         int newY = y + deltaY;
 
-        if (isInBounds(newX, newY) && currentBoard.getCell(newX, newY).getState() == CellState.EMPTY) {
-            currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0);
+        if (isInBounds(newX, newY) && currentBoard.getCell(newX, newY, true).getState() == CellState.EMPTY) {
+            currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true); // Clear the current position in the foreground layer
             x = newX;
             y = newY;
-            currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId);
+            currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true); // Set the new position in the foreground layer
         }
     }
 

@@ -22,7 +22,11 @@ public class Game extends JFrame {
 
         // Set up some WALL cells for testing
         for (int i = 0; i < 24; i++) {
-            board1.setCellState(0, i, CellState.WALL.getType(), i % 12);
+            board1.setCellState(0, i, CellState.WALL.getType(), i % 12, true);
+            
+            if (i % 2 == 0) {
+                board1.setCellState(8, i, CellState.WALL.getType(), 14, true);
+            }
         }
 
         map.addBoard("board1", board1);
@@ -71,60 +75,59 @@ public class Game extends JFrame {
     }
 
     @Override
-    public void paint(Graphics g) {
-        // Resize the offscreen image if necessary
-        if (offscreen == null || offscreen.getWidth() != getWidth() || offscreen.getHeight() != getHeight()) {
-            offscreen = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
-        }
+public void paint(Graphics g) {
+    // Resize the offscreen image if necessary
+    if (offscreen == null || offscreen.getWidth() != getWidth() || offscreen.getHeight() != getHeight()) {
+        offscreen = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+    }
 
-        Graphics2D g2d = offscreen.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    Graphics2D g2d = offscreen.createGraphics();
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Clear the offscreen image with a solid color (e.g., white)
-        g2d.setColor(Color.WHITE);
-        g2d.fillRect(0, 0, getWidth(), getHeight());
+    // Clear the offscreen image with a solid color (e.g., white)
+    g2d.setColor(Color.WHITE);
+    g2d.fillRect(0, 0, getWidth(), getHeight());
 
-        Board currentBoard = map.getCurrentBoard();
-        int tileSize = (int) (Assets.getTileSize() * scale);
+    Board currentBoard = map.getCurrentBoard();
+    int tileSize = (int) (Assets.getTileSize() * scale);
 
-        // Calculate the starting x and y positions to center the board
-        int boardWidth = currentBoard.getWidth() * tileSize;
-        int boardHeight = currentBoard.getHeight() * tileSize;
-        int startX = (getWidth() - boardWidth) / 2;
-        int startY = (getHeight() - boardHeight) / 2;
+    // Calculate the starting x and y positions to center the board
+    int boardWidth = currentBoard.getWidth() * tileSize;
+    int boardHeight = currentBoard.getHeight() * tileSize;
+    int startX = (getWidth() - boardWidth) / 2;
+    int startY = (getHeight() - boardHeight) / 2;
 
-        // Draw the board
-        for (int x = 0; x < currentBoard.getWidth(); x++) {
-            for (int y = 0; y < currentBoard.getHeight(); y++) {
-                Cell cell = currentBoard.getCell(x, y);
-                if (cell != null) {
-                    BufferedImage texture = CellState.getTexture(cell);
-                    g2d.drawImage(texture, startX + x * tileSize, startY + y * tileSize, tileSize, tileSize, null);
-                }
+    // Draw the background layer
+    for (int x = 0; x < currentBoard.getWidth(); x++) {
+        for (int y = 0; y < currentBoard.getHeight(); y++) {
+            Cell cell = currentBoard.getCell(x, y, false);
+            if (cell != null) {
+                BufferedImage texture = CellState.getTexture(cell);
+                g2d.drawImage(texture, startX + x * tileSize, startY + y * tileSize, tileSize, tileSize, null);
             }
         }
+    }
 
-        // Draw the player on top with the current texture ID
-        BufferedImage playerTexture = Assets.getTexture(CellState.PLAYER, player.getCurrentTextureId());
-        if (playerTexture != null) {
-            System.out.println("Drawing player texture with ID: " + player.getCurrentTextureId());
-            g2d.setComposite(AlphaComposite.SrcOver);
-            g2d.drawImage(playerTexture, startX + player.getX() * tileSize, startY + player.getY() * tileSize, tileSize, tileSize, null);
-        } else {
-            System.out.println("Player texture is null for ID: " + player.getCurrentTextureId());
+    // Draw the foreground layer
+    for (int x = 0; x < currentBoard.getWidth(); x++) {
+        for (int y = 0; y < currentBoard.getHeight(); y++) {
+            Cell cell = currentBoard.getCell(x, y, true);
+            if (cell != null) {
+                BufferedImage texture = CellState.getTexture(cell);
+                g2d.drawImage(texture, startX + x * tileSize, startY + y * tileSize, tileSize, tileSize, null);
+            }
         }
-
-        // Draw the offscreen image to the screen
-        g.drawImage(offscreen, 0, 0, null);
-        g2d.dispose();
     }
 
-    @Override
-    public void update(Graphics g) {
-        paint(g);
+    // Draw the player on top with the current texture ID
+    BufferedImage playerTexture = Assets.getTexture(CellState.PLAYER, player.getCurrentTextureId());
+    if (playerTexture != null) {
+        g2d.setComposite(AlphaComposite.SrcOver);
+        g2d.drawImage(playerTexture, startX + player.getX() * tileSize, startY + player.getY() * tileSize, tileSize, tileSize, null);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(Game::new);
-    }
+    // Draw the offscreen image to the screen
+    g.drawImage(offscreen, 0, 0, null);
+    g2d.dispose();
+}
 }
