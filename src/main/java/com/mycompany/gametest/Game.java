@@ -22,16 +22,16 @@ public class Game extends JFrame {
 
         // Set up some WALL cells for testing
         for (int i = 0; i < 32; i++) {
-            board1.setCellState(0, i, CellState.WALL.getType(), i % 12, true,-1);
+            board1.setCellState(0, i, CellState.WALL.getType(), i % 12, true,-1, -1);
             
             if (i % 2 == 0) {
-                board1.setCellState(8, i, CellState.WALL.getType(), 14, true, -1);
+                board1.setCellState(8, i, CellState.WALL.getType(), 14, true, -1, -1);
             }
         }
         
         // Configurar portales y sus enlaces
-        board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 0); // Añadir portal en board1 con link ID 0
-        board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 1); // Añadir portal en board2 con link ID 1
+        board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 0, 1); // Añadir portal en board1 con link ID 0
+        board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 1, 0); // Añadir portal en board2 con link ID 1
 
         map.addBoard("board1", board1);
         map.addBoard("board2", board2);

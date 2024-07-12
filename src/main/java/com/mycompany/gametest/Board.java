@@ -1,6 +1,5 @@
 package com.mycompany.gametest;
 
-import com.mycompany.gametest.CellState;
 import javax.swing.JPanel;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,40 +26,34 @@ public class Board extends JPanel {
     private void initializeEmptyBoard() {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                backgroundCells[x][y] = new Cell(CellState.EMPTY, 0); // Initialize with EMPTY textureId
-                foregroundCells[x][y] = new Cell(CellState.EMPTY, 0); // Initialize with EMPTY textureId
+                backgroundCells[x][y] = new Cell(CellState.EMPTY, 0, -1, -1); // Initialize with EMPTY textureId
+                foregroundCells[x][y] = new Cell(CellState.EMPTY, 0, -1, -1); // Initialize with EMPTY textureId
             }
         }
     }
 
-    public void setCellState(int x, int y, int type, int textureId, boolean isForeground, int portalLinkId) {
+    public void setCellState(int x, int y, int type, int textureId, boolean isForeground, int entryPortalId, int exitPortalId) {
         if (isValidCell(x, y)) {
             Cell[][] targetCells = isForeground ? foregroundCells : backgroundCells;
-            Cell cell = targetCells[x][y];
+            Cell cell;
+
             switch (type) {
                 case 0:  // EMPTY
-                    cell.setState(CellState.EMPTY);
-                    cell.setTextureId(0);
-                    cell.setPortalLinkId(-1);  // No portal for EMPTY state
+                    cell = new Cell(CellState.EMPTY, 0, -1, -1);
                     break;
                 case 1:  // WALL
-                    cell.setState(CellState.WALL);
-                    cell.setTextureId(textureId);
-                    cell.setPortalLinkId(-1);  // No portal for WALL state
+                    cell = new Cell(CellState.WALL, textureId, -1, -1);
                     break;
                 case 2:  // PLAYER
-                    cell.setState(CellState.PLAYER);
-                    cell.setTextureId(textureId);
-                    cell.setPortalLinkId(-1);  // No portal for PLAYER state
+                    cell = new Cell(CellState.PLAYER, textureId, -1, -1);
                     break;
                 case 3:  // BOARDSWITCH (PORTAL)
-                    cell.setState(CellState.BOARDSWITCH);
-                    cell.setTextureId(textureId);
-                    cell.setPortalLinkId(portalLinkId);  // Set the portal link ID
+                    cell = new Cell(CellState.BOARDSWITCH, textureId, entryPortalId, exitPortalId);  // Use entry and exit IDs
                     break;
                 default:
-                    break;
+                    return; // Do nothing if type is invalid
             }
+            targetCells[x][y] = cell; // Set the cell correctly
             repaint();
         }
     }
@@ -77,13 +70,13 @@ public class Board extends JPanel {
     }
     
     public String getName() {
-    for (Map.Entry<String, Board> entry : gameMap.getBoards().entrySet()) {
-        if (entry.getValue().equals(this)) {
-            return entry.getKey();
+        for (Map.Entry<String, Board> entry : gameMap.getBoards().entrySet()) {
+            if (entry.getValue().equals(this)) {
+                return entry.getKey();
+            }
         }
+        return null;
     }
-    return null;
-}
     
     public void setPortalLink(int portalLinkId, Board targetBoard) {
         portalLinks.put(portalLinkId, targetBoard);

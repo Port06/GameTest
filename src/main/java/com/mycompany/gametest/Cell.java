@@ -3,12 +3,14 @@ package com.mycompany.gametest;
 public class Cell {
     private CellState state;
     private int textureId;
-    private int portalLinkId;  // Identificador de portal para vincular los portales
+    private int entryPortalId;  // Entry portal ID
+    private int exitPortalId;   // Exit portal ID
 
-    public Cell(CellState state, int textureId) {
+    public Cell(CellState state, int textureId, int exitPortalId, int entryPortalId) {
         this.state = state;
         this.textureId = textureId;
-        this.portalLinkId = -1;  // Valor predeterminado para células que no son portales
+        this.entryPortalId = entryPortalId; // Set entry portal ID
+        this.exitPortalId = exitPortalId;   // Set exit portal ID
     }
 
     public CellState getState() {
@@ -27,11 +29,23 @@ public class Cell {
         this.textureId = textureId;
     }
 
-    public int getPortalLinkId() {
-        return portalLinkId;
+    public int getEntryPortalId() {
+        return entryPortalId;
     }
 
-    public void setPortalLinkId(int portalLinkId) {
-        this.portalLinkId = portalLinkId;
+    public void setEntryPortalId(int entryPortalId) {
+        this.entryPortalId = entryPortalId;
+    }
+    
+    public int getExitPortalId() {
+        return exitPortalId;
+    }
+
+    public void setExitPortalId(int exitPortalId) {
+        this.exitPortalId = exitPortalId;
+    }
+    
+    public boolean isPortal() {
+        return state == CellState.BOARDSWITCH;
     }
 }

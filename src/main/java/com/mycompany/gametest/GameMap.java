@@ -19,12 +19,12 @@ public class GameMap {
         return boards.get(name);
     }
 
-    public Board getBoardByPortalLinkId(int portalLinkId) {
+    public Board getBoardByPortalLinkId(int entryPortalId, int exitPortalId) {
         return boards.values().stream().filter(board -> {
             for (int x = 0; x < board.getWidth(); x++) {
                 for (int y = 0; y < board.getHeight(); y++) {
                     Cell cell = board.getCell(x, y, true);
-                    if (cell != null && cell.getPortalLinkId() == portalLinkId) {
+                    if (cell != null && cell.getEntryPortalId() == entryPortalId && cell.getExitPortalId() == exitPortalId) {
                         return true;
                     }
                 }
@@ -52,7 +52,7 @@ public class GameMap {
         }
     }
 
-    // Método para obtener el mapa de tableros
+    // Method to retrieve the map of boards
     public Map<String, Board> getBoards() {
         return boards;
     }
