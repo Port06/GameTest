@@ -18,7 +18,7 @@ public class Game extends JFrame {
     public Game() {
         map = new GameMap();
         Board board1 = new Board(24, 24);
-        Board board2 = new Board(10, 10);
+        Board board2 = new Board(12, 12);
 
         // Set up some WALL cells for testing
         for (int i = 0; i < 24; i++) {
