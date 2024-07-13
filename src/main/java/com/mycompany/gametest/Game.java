@@ -16,6 +16,10 @@ public class Game extends JFrame {
     private Player player;
     private double scale = 1.5;  // Scaling factor for the board
     private BufferedImage offscreen;
+    private boolean isPaused = false;
+    private JButton resumeButton;
+    private JPanel gamePanel;
+    private JPanel menuPanel;
     
     public Queue<TextBox> textBoxQueue = new LinkedList<>(); // Use a queue for TextBoxes
     private TextBox currentTextBox; // Track the currently displayed TextBox
@@ -66,30 +70,72 @@ public class Game extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        addKeyListener(new KeyAdapter() {
+        // Create the game panel
+        gamePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                drawGame(g);
+            }
+        };
+        gamePanel.setFocusable(true);
+        gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_UP:
-                    case KeyEvent.VK_W:
-                        player.move(0, -1);
-                        break;
-                    case KeyEvent.VK_DOWN:
-                    case KeyEvent.VK_S:
-                        player.move(0, 1);
-                        break;
-                    case KeyEvent.VK_LEFT:
-                    case KeyEvent.VK_A:
-                        player.move(-1, 0);
-                        break;
-                    case KeyEvent.VK_RIGHT:
-                    case KeyEvent.VK_D:
-                        player.move(1, 0);
-                        break;
+                if (!isPaused) {
+                    switch (e.getKeyCode()) {
+                        case KeyEvent.VK_UP:
+                        case KeyEvent.VK_W:
+                            player.move(0, -1);
+                            break;
+                        case KeyEvent.VK_DOWN:
+                        case KeyEvent.VK_S:
+                            player.move(0, 1);
+                            break;
+                        case KeyEvent.VK_LEFT:
+                        case KeyEvent.VK_A:
+                            player.move(-1, 0);
+                            break;
+                        case KeyEvent.VK_RIGHT:
+                        case KeyEvent.VK_D:
+                            player.move(1, 0);
+                            break;
+                        case KeyEvent.VK_ESCAPE:
+                            pauseGame();
+                            break;
+                    }
+                    repaint();
+                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    resumeGame();
                 }
-                repaint();
             }
         });
+        
+        // Create the menu panel
+        menuPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                drawMenu(g);
+            }
+        };
+        menuPanel.setOpaque(true);
+        menuPanel.setBackground(new Color(128, 128, 128, 192)); // Grayish with some transparency
+        menuPanel.setBounds(0, getHeight() / 3, getWidth(), getHeight() / 3); // Create a stripe in the middle of the window
+        menuPanel.setLayout(null); // Use absolute positioning for the button
+
+        // Create the resume button and center it within the menu panel
+        resumeButton = new JButton("Resume");
+        resumeButton.setBounds((menuPanel.getWidth() - 100) / 2, (menuPanel.getHeight() - 30) / 2, 100, 30); // Center the button
+        resumeButton.addActionListener(e -> resumeGame());
+        menuPanel.add(resumeButton);
+
+        // Initially show the game panel
+        setContentPane(gamePanel);
+
+        // Add the menu panel to the layered pane
+        getLayeredPane().add(menuPanel, JLayeredPane.PALETTE_LAYER);
+        menuPanel.setVisible(false); // Initially hidden
 
         // Start the player animation scheduler
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -126,9 +172,20 @@ public class Game extends JFrame {
             }, displayDuration, TimeUnit.MILLISECONDS); // Adjusted duration
         }
     }
+     
+    private void pauseGame() {
+        isPaused = true;
+        menuPanel.setVisible(true); // Show the menu panel
+        repaint();
+    }
 
-    @Override
-    public void paint(Graphics g) {
+    private void resumeGame() {
+        isPaused = false;
+        menuPanel.setVisible(false); // Hide the menu panel
+        repaint();
+    }
+
+    private void drawGame(Graphics g) {
         if (offscreen == null || offscreen.getWidth() != getWidth() || offscreen.getHeight() != getHeight()) {
             offscreen = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         }
@@ -145,7 +202,7 @@ public class Game extends JFrame {
         int boardWidth = currentBoard.getWidth() * tileSize;
         int boardHeight = currentBoard.getHeight() * tileSize;
         int startX = (getWidth() - boardWidth) / 2;
-        int offsetY = 10;
+        int offsetY = -20;
         int startY = (getHeight() - boardHeight) / 2 + offsetY;
 
         // Draw each layer in order with debug statements
@@ -177,12 +234,24 @@ public class Game extends JFrame {
                     if (texture != null) {
                         g2d.drawImage(texture, startX + x * tileSize, startY + y * tileSize, tileSize, tileSize, null);
                     } else {
-                        //Nothing
+                        // Nothing
                     }
                 } else {
-                    //Nothing
+                    // Nothing
                 }
             }
         }
+    }
+
+    private void drawMenu(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+
+        // Draw semi-transparent background
+        g2d.setColor(new Color(128, 128, 128, 192)); // Grayish with some transparency
+        g2d.fillRect(0, getHeight() / 3, getWidth(), getHeight() / 3); // 1/3 of the height centered vertically
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Game::new);
     }
 }
