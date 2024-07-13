@@ -99,6 +99,7 @@ public class Game extends JFrame {
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                System.out.println("Key pressed: " + e.getKeyCode()); // Debug statement
                 if (!isPaused) {
                     switch (e.getKeyCode()) {
                         case KeyEvent.VK_UP:
@@ -148,12 +149,20 @@ public class Game extends JFrame {
     public void pauseGame() {
         isPaused = true;
         menu.showMenu("game");
+        requestFocusInWindow();
         repaint();
     }
 
     public void resumeGame() {
         isPaused = false;
         menu.hideMenu();
+
+        // Request focus for the JFrame and game panel
+        requestFocus();
+        gamePanel.requestFocus();
+
+        // Ensure the game is not paused
+        isPaused = false;
         repaint();
     }
 
@@ -168,8 +177,7 @@ public class Game extends JFrame {
     public void resumeMapEditor() {
         isPaused = false;
         menu.hideMenu();
-        // Ensure focus is returned to the game panel after closing map editor
-        gamePanel.requestFocusInWindow();
+        mapEditor.getEditorPanel().requestFocusInWindow(); // Request focus for map editor panel
         repaint();
     }
 
