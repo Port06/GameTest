@@ -2,6 +2,8 @@ package com.mycompany.gametest;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -18,6 +20,7 @@ public class Game extends JFrame {
     private BufferedImage offscreen;
     private boolean isPaused = false;
     private JButton resumeButton;
+    private JButton mapEditorButton;
     private JPanel gamePanel;
     private JPanel menuPanel;
     
@@ -78,6 +81,7 @@ public class Game extends JFrame {
                 drawGame(g);
             }
         };
+        
         gamePanel.setFocusable(true);
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
@@ -121,14 +125,20 @@ public class Game extends JFrame {
         };
         menuPanel.setOpaque(true);
         menuPanel.setBackground(new Color(128, 128, 128, 192)); // Grayish with some transparency
-        menuPanel.setBounds(0, getHeight() / 3, getWidth(), getHeight() / 3); // Create a stripe in the middle of the window
         menuPanel.setLayout(null); // Use absolute positioning for the button
+        menuPanel.setBounds(0, getHeight() / 3, getWidth(), getHeight() / 3); // Create a stripe in the middle of the window
 
-        // Create the resume button and center it within the menu panel
+        // Create the resume button and position it within the menu panel
         resumeButton = new JButton("Resume");
-        resumeButton.setBounds((menuPanel.getWidth() - 100) / 2, (menuPanel.getHeight() - 30) / 2, 100, 30); // Center the button
+        resumeButton.setBounds(getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30); // Position the button
         resumeButton.addActionListener(e -> resumeGame());
         menuPanel.add(resumeButton);
+
+        // Create the map editor button and position it within the menu panel
+        mapEditorButton = new JButton("Map Editor");
+        mapEditorButton.setBounds(3 * getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30); // Position the button
+        //mapEditorButton.addActionListener(e -> openMapEditor());
+        menuPanel.add(mapEditorButton);
 
         // Initially show the game panel
         setContentPane(gamePanel);
@@ -136,6 +146,22 @@ public class Game extends JFrame {
         // Add the menu panel to the layered pane
         getLayeredPane().add(menuPanel, JLayeredPane.PALETTE_LAYER);
         menuPanel.setVisible(false); // Initially hidden
+
+        // Add a component listener to handle resizing
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                // Update menu panel size and position
+                menuPanel.setBounds(0, getHeight() / 3, getWidth(), getHeight() / 3);
+                
+                // Update bounds of the buttons
+                resumeButton.setBounds(getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30);
+                mapEditorButton.setBounds(3 * getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30);
+                
+                // Repaint to apply the changes
+                menuPanel.repaint();
+            }
+        });
 
         // Start the player animation scheduler
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();

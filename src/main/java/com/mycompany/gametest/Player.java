@@ -15,7 +15,7 @@ public class Player {
     private Game game; // Add a reference to the Game
     private long lastMoveTime; // Store the last move time
     private static final long MOVE_COOLDOWN = 500; // Cooldown period in milliseconds
-    private static final long WATER_MOVE_COOLDOWN = 1000; // Cooldown period when moving into water
+    private static final long WATER_MOVE_COOLDOWN = 1250; // Cooldown period when moving into water
 
     public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map,  Game game) {
         this.x = startX;

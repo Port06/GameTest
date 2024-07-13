@@ -89,7 +89,6 @@ public class Board extends JPanel {
                     return; // Do nothing if type is invalid
             }
             targetLayer[x][y] = cell;
-            System.out.println("Set cell at (" + x + ", " + y + ") in layer " + layer + " with type " + type); // Debug statement
             repaint();
         } else {
             System.out.println("Invalid cell position: (" + x + ", " + y + ")"); // Debug statement
