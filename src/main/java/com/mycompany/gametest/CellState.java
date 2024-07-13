@@ -6,7 +6,9 @@ public enum CellState {
     EMPTY(0, 0),
     WALL(1, 0),
     PLAYER(2, 0),
-    BOARDSWITCH(3, 0);
+    BOARDSWITCH(3, 0),
+    WATER(4, 0),
+    GRASS(5, 0);
 
     private int type;
     private int texture;
@@ -27,7 +29,11 @@ public enum CellState {
     public static BufferedImage getTexture(Cell cell) {
         CellState state = cell.getState();
         int textureId = cell.getTextureId();
-        return Assets.getTexture(state, textureId);
+        BufferedImage texture = Assets.getTexture(state, textureId);
+        if (texture == null) {
+            System.out.println("Texture not found for state: " + state + " with textureId: " + textureId); // Debug statement
+        }
+        return texture;
     }
 
     public void setType(int type) {

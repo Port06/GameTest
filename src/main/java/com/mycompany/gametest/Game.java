@@ -28,16 +28,26 @@ public class Game extends JFrame {
 
         // Set up some WALL cells for testing
         for (int i = 0; i < 32; i++) {
-            board1.setCellState(0, i, CellState.WALL.getType(), i % 12, true,-1, -1);
+            board1.setCellState(0, i, CellState.WALL.getType(), i % 12, 4,-1, -1);
             
             if (i % 2 == 0) {
-                board1.setCellState(8, i, CellState.WALL.getType(), 14, true, -1, -1);
+                board1.setCellState(8, i, CellState.WALL.getType(), 14, 4, -1, -1);
             }
         }
         
+        board1.setCellState(15, 15, CellState.WATER.getType(), 0, 1, -1, -1);
+        board1.setCellState(15, 16, CellState.WATER.getType(), 0, 1, -1, -1);
+        board1.setCellState(15, 17, CellState.WATER.getType(), 0, 1, -1, -1);
+        board1.setCellState(16, 15, CellState.WATER.getType(), 1, 1, -1, -1);
+        board1.setCellState(16, 16, CellState.WATER.getType(), 1, 1, -1, -1);
+        board1.setCellState(16, 17, CellState.WATER.getType(), 1, 1, -1, -1);
+        board1.setCellState(17, 15, CellState.WATER.getType(), 2, 1, -1, -1);
+        board1.setCellState(17, 16, CellState.WATER.getType(), 2, 1, -1, -1);
+        board1.setCellState(17, 17, CellState.WATER.getType(), 2, 1, -1, -1);
+        
         // Configurar portales y sus enlaces
-        board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 0, 1); // Añadir portal en board1 con link ID 0
-        board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, true, 1, 0); // Añadir portal en board2 con link ID 1
+        board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, 3, 0, 1); // Añadir portal en board1 con link ID 0
+        board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, 3, 1, 0); // Añadir portal en board2 con link ID 1
 
         map.addBoard("MainBoard", board1);
         map.addBoard("SubBoard", board2);
@@ -119,7 +129,6 @@ public class Game extends JFrame {
 
     @Override
     public void paint(Graphics g) {
-        // Resize the offscreen image if necessary
         if (offscreen == null || offscreen.getWidth() != getWidth() || offscreen.getHeight() != getHeight()) {
             offscreen = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         }
@@ -127,40 +136,21 @@ public class Game extends JFrame {
         Graphics2D g2d = offscreen.createGraphics();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Clear the offscreen image with a solid color (e.g., white)
         g2d.setColor(Color.WHITE);
         g2d.fillRect(0, 0, getWidth(), getHeight());
 
         Board currentBoard = map.getCurrentBoard();
         int tileSize = (int) (Assets.getTileSize() * scale);
 
-        // Calculate the starting x and y positions to center the board
         int boardWidth = currentBoard.getWidth() * tileSize;
         int boardHeight = currentBoard.getHeight() * tileSize;
         int startX = (getWidth() - boardWidth) / 2;
-        int offsetY = 10; // Example offset in pixels
-        int startY = (getHeight() - boardHeight) / 2 + offsetY; // Apply the offset
+        int offsetY = 10;
+        int startY = (getHeight() - boardHeight) / 2 + offsetY;
 
-        // Draw the background layer
-        for (int x = 0; x < currentBoard.getWidth(); x++) {
-            for (int y = 0; y < currentBoard.getHeight(); y++) {
-                Cell cell = currentBoard.getCell(x, y, false);
-                if (cell != null) {
-                    BufferedImage texture = CellState.getTexture(cell);
-                    g2d.drawImage(texture, startX + x * tileSize, startY + y * tileSize, tileSize, tileSize, null);
-                }
-            }
-        }
-
-        // Draw the foreground layer
-        for (int x = 0; x < currentBoard.getWidth(); x++) {
-            for (int y = 0; y < currentBoard.getHeight(); y++) {
-                Cell cell = currentBoard.getCell(x, y, true);
-                if (cell != null) {
-                    BufferedImage texture = CellState.getTexture(cell);
-                    g2d.drawImage(texture, startX + x * tileSize, startY + y * tileSize, tileSize, tileSize, null);
-                }
-            }
+        // Draw each layer in order with debug statements
+        for (int layer = 0; layer < 5; layer++) {
+            drawLayer(g2d, currentBoard, startX, startY, tileSize, layer);
         }
 
         // Draw the player on top with the current texture ID
@@ -169,14 +159,30 @@ public class Game extends JFrame {
             g2d.setComposite(AlphaComposite.SrcOver);
             g2d.drawImage(playerTexture, startX + player.getX() * tileSize, startY + player.getY() * tileSize, tileSize, tileSize, null);
         }
-        
-        // Draw the current TextBox if it exists
+
         if (currentTextBox != null) {
-            currentTextBox.draw(g2d); // Draw only the current TextBox
+            currentTextBox.draw(g2d);
         }
 
-        // Draw the offscreen image to the screen
         g.drawImage(offscreen, 0, 0, null);
         g2d.dispose();
+    }
+
+    private void drawLayer(Graphics2D g2d, Board board, int startX, int startY, int tileSize, int layer) {
+        for (int x = 0; x < board.getWidth(); x++) {
+            for (int y = 0; y < board.getHeight(); y++) {
+                Cell cell = board.getCell(x, y, layer);
+                if (cell != null) {
+                    BufferedImage texture = CellState.getTexture(cell);
+                    if (texture != null) {
+                        g2d.drawImage(texture, startX + x * tileSize, startY + y * tileSize, tileSize, tileSize, null);
+                    } else {
+                        //Nothing
+                    }
+                } else {
+                    //Nothing
+                }
+            }
+        }
     }
 }

@@ -23,11 +23,14 @@ public class Assets {
             textures.put(state, new HashMap<>());
         }
 
-        loadTexturesFromDirectory("/grass", CellState.EMPTY);
+        loadTexturesFromDirectory("/grass", CellState.GRASS);
         loadTexturesFromDirectory("/rocks", CellState.WALL);
         loadTexturesFromDirectory("/player", CellState.PLAYER);
         loadTexturesFromDirectory("/trees", CellState.WALL);
         loadTexturesFromDirectory("/portal", CellState.BOARDSWITCH);
+        loadTexturesFromDirectory("/water", CellState.WATER);
+        loadTexturesFromDirectory("/air", CellState.EMPTY);
+        
     }
 
     private static void loadTexturesFromDirectory(String directoryPath, CellState state) {

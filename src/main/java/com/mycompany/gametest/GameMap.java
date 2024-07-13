@@ -23,7 +23,7 @@ public class GameMap {
         return boards.values().stream().filter(board -> {
             for (int x = 0; x < board.getWidth(); x++) {
                 for (int y = 0; y < board.getHeight(); y++) {
-                    Cell cell = board.getCell(x, y, true);
+                    Cell cell = board.getCell(x, y, 3);
                     if (cell != null && cell.getEntryPortalId() == entryPortalId && cell.getExitPortalId() == exitPortalId) {
                         return true;
                     }

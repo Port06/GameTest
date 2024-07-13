@@ -15,6 +15,7 @@ public class Player {
     private Game game; // Add a reference to the Game
     private long lastMoveTime; // Store the last move time
     private static final long MOVE_COOLDOWN = 500; // Cooldown period in milliseconds
+    private static final long WATER_MOVE_COOLDOWN = 1000; // Cooldown period when moving into water
 
     public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map,  Game game) {
         this.x = startX;
@@ -27,7 +28,7 @@ public class Player {
         this.lastMoveTime = 0; // Initialize the last move time
 
         // Set the initial state in the foreground layer
-        this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1, -1);
+        this.currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, 3, -1, -1);
 
         // Initialize the animation scheduler
         initAnimation();
@@ -43,11 +44,13 @@ public class Player {
         currentTextureId = (currentTextureId + 1) % totalTextures;
 
         // Update the board with the new texture ID in the foreground layer
-        currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1, -1);
+        currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, 3, -1, -1);
     }
 
     public void move(int deltaX, int deltaY) {
         long currentTime = System.currentTimeMillis();
+        long cooldownPeriod = MOVE_COOLDOWN;
+        
         if (currentTime - lastMoveTime < MOVE_COOLDOWN) {
             return; // Do not allow movement if the cooldown period has not passed
         }
@@ -56,14 +59,22 @@ public class Player {
         int newY = y + deltaY;
 
         if (isInBounds(newX, newY)) {
-            Cell targetCell = currentBoard.getCell(newX, newY, true);
+            Cell targetCell = currentBoard.getCell(newX, newY, 3);
+            Cell targetCellLayer1 = currentBoard.getCell(newX, newY, 1);
+            
+            // Determine the cooldown period based on the target cell state (for water slowdown)
+            if (targetCellLayer1.getState() == CellState.WATER) {
+                cooldownPeriod = WATER_MOVE_COOLDOWN;
+            }
+
+            if (currentTime - lastMoveTime < cooldownPeriod) {
+                return; // Do not allow movement if the cooldown period has not passed
+            }
 
             // Check if the target cell is empty or a portal
             if (targetCell.getState() == CellState.EMPTY || targetCell.getState() == CellState.BOARDSWITCH) {
                 // Clear the current position of the player in the foreground layer
-                currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true, -1, -1);
-                // Clear the current position of the player in the background layer (if necessary)
-                currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, false, -1, -1);
+                currentBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, 3, -1, -1);
 
                 if (targetCell.isPortal()) {
                     // Handle portal transition
@@ -80,7 +91,7 @@ public class Player {
 
                         for (int x = 0; x < targetBoard.getWidth(); x++) {
                             for (int y = 0; y < targetBoard.getHeight(); y++) {
-                                Cell cell = targetBoard.getCell(x, y, true);
+                                Cell cell = targetBoard.getCell(x, y, 3);
                                 if (cell != null && cell.getEntryPortalId() == exitId) {
                                     targetX = x;
                                     targetY = y;
@@ -97,7 +108,7 @@ public class Player {
                             y = targetY + 1; // Position just below the portal
 
                             // Clear the new position of the player in the current board before changing
-                            targetBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, true, -1, -1);
+                            targetBoard.setCellState(x, y, CellState.EMPTY.getType(), 0, 3, -1, -1);
 
                             // Change to the new board
                             currentBoard = targetBoard;
@@ -118,7 +129,7 @@ public class Player {
                 }
 
                 // Set the player's position in the foreground layer
-                currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, true, -1, -1);
+                currentBoard.setCellState(x, y, CellState.PLAYER.getType(), currentTextureId, 3, -1, -1);
 
                 // Update the last move time
                 lastMoveTime = System.currentTimeMillis();
