@@ -1,47 +1,91 @@
 package com.mycompany.gametest;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class TextBox {
+    public String text;
+    private boolean visible;
     private int x, y, width, height;
-    private String text;
     private Color backgroundColor;
     private Color textColor;
     private Font font;
-    private boolean visible;
+    private BufferedImage offscreen;
 
     public TextBox(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.backgroundColor = new Color(0, 0, 0, 128); // Semi-transparent
-        this.textColor = Color.WHITE;
-        this.font = new Font("16x16", Font.PLAIN, 16); // Use your specific font
+        this.text = "";
         this.visible = false;
+        this.backgroundColor = new Color(0, 0, 0, 128); // Semi-transparent black
+        this.textColor = Color.WHITE;
+        this.font = new Font("Arial", Font.PLAIN, 16);
+        this.offscreen = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }
 
-    public void draw(Graphics g) {
-        if (visible) {
-            g.setColor(backgroundColor);
-            g.fillRect(x, y, width, height);
-            g.setColor(textColor);
-            g.setFont(font);
-            g.drawString(text, x + 5, y + 15); // Adjust position as needed
-        }
-    }
-
-    public void setText(String text) {
+    public void showText(String text) {
         this.text = text;
-    }
-
-    public void show() {
         this.visible = true;
     }
 
-    public void hide() {
+    public void hideText() {
         this.visible = false;
+    }
+
+    public void drawTextBox(Graphics g) {
+        if (!visible) {
+            return;
+        }
+
+        Graphics2D g2d = (Graphics2D) offscreen.getGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Draw background
+        g2d.setColor(backgroundColor);
+        g2d.fillRoundRect(0, 0, width, height, 20, 20);
+
+        // Draw text
+        g2d.setFont(font);
+        g2d.setColor(textColor);
+        int padding = 10;
+        drawString(g2d, text, padding, padding, width - 2 * padding);
+
+        g.drawImage(offscreen, x, y, null);
+        g2d.dispose();
+    }
+
+    private void drawString(Graphics2D g2d, String text, int x, int y, int maxWidth) {
+        FontMetrics fm = g2d.getFontMetrics();
+        int lineHeight = fm.getHeight();
+        int curX = x;
+        int curY = y + 5; // Offset the text by 5 pixels downwards
+
+        for (String word : text.split(" ")) {
+            int wordWidth = fm.stringWidth(word + " ");
+            if (curX + wordWidth >= x + maxWidth) {
+                curX = x;
+                curY += lineHeight;
+            }
+            g2d.drawString(word, curX, curY);
+            curX += wordWidth;
+        }
+    }
+
+    public void setBackgroundColor(Color backgroundColor) {
+        this.backgroundColor = backgroundColor;
+    }
+
+    public void setTextColor(Color textColor) {
+        this.textColor = textColor;
+    }
+
+    public void setFont(Font font) {
+        this.font = font;
+    }
+
+    public boolean isVisible() {
+        return visible;
     }
 }
