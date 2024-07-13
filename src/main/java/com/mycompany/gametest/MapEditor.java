@@ -2,56 +2,95 @@ package com.mycompany.gametest;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MapEditor {
 
-    private JFrame editorFrame;
+    private JPanel editorPanel;
     private JComboBox<String> boardSelector;
-    private JPanel mapPanel; // Panel to display the map
-    private String[] availableBoards = {"Board 1", "Board 2", "Board 3"}; // Example boards
+    private JPanel mapPanel;
+    private Game game;
+    private GameRenderer gameRenderer;
+    private BufferedImage offscreen;
 
-    public void openEditor() {
-        // Initialize the editor frame
-        editorFrame = new JFrame("Map Editor");
-        editorFrame.setSize(800, 600);
-        editorFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        editorFrame.setLayout(new BorderLayout());
+    public MapEditor(Game game) {
+        this.game = game;
+        this.gameRenderer = new GameRenderer(game.getMap(), game.getPlayer());
+        initializeEditorPanel();
+        mapPanel.requestFocusInWindow(); // Ensure map panel requests focus immediately
+    }
 
-        // Create and add the dropdown menu for board selection
-        boardSelector = new JComboBox<>(availableBoards);
+    private void initializeEditorPanel() {
+        editorPanel = new JPanel(new BorderLayout());
+
+        // Create the board selector
+        boardSelector = new JComboBox<>(game.getMap().getBoardNames().toArray(new String[0]));
         boardSelector.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Logic to switch boards
                 String selectedBoard = (String) boardSelector.getSelectedItem();
                 loadBoard(selectedBoard);
+                mapPanel.requestFocusInWindow(); // Request focus back to map panel after selecting board
             }
         });
 
         // Create the map panel
-        mapPanel = new JPanel();
-        mapPanel.setBackground(Color.GRAY); // Placeholder color
+        mapPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (game.getMap().getCurrentBoard() != null) {
+                    gameRenderer.drawBoard(g, offscreen, getWidth(), getHeight());
+                }
+            }
+        };
 
-        // Add components to the editor frame
-        editorFrame.add(boardSelector, BorderLayout.NORTH);
-        editorFrame.add(mapPanel, BorderLayout.CENTER);
+        mapPanel.setFocusable(true);
+        mapPanel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    game.pauseMapEditor();
+                } else if (e.getKeyCode() == KeyEvent.VK_M) {
+                    // If the menu is not visible, pause the game and show the menu
+                    if (!game.getMenu().isGamePanelVisible()) {
+                        System.out.println("Opening menu");
+                        game.pauseMapEditor();
+                    }
+                }
+            }
+        });
 
-        // Display the editor frame
-        editorFrame.setVisible(true);
+        editorPanel.add(boardSelector, BorderLayout.NORTH);
+        editorPanel.add(mapPanel, BorderLayout.CENTER);
 
-        // Load the initial board
-        loadBoard(availableBoards[0]);
+        // Request focus for the map panel after it is added to the editor panel
+        mapPanel.requestFocusInWindow();
     }
 
-    private void loadBoard(String boardName) {
-        // Logic to load the selected board and display it in the map panel
-        System.out.println("Loading board: " + boardName);
-        // Placeholder logic to update the map panel
-        mapPanel.removeAll();
-        mapPanel.add(new JLabel("Displaying " + boardName));
-        mapPanel.revalidate();
-        mapPanel.repaint();
+    public JPanel getEditorPanel() {
+        return editorPanel;
+    }
+
+    public void loadBoard(String boardName) {
+        if (!game.getMenu().isGamePanelVisible()) { // Check if the game panel menu is not visible
+            game.getMap().setCurrentBoard(boardName);
+            mapPanel.requestFocusInWindow();
+            mapPanel.repaint();
+        }
+    }
+
+    public void openEditor() {
+        game.openMapEditor();
+        mapPanel.requestFocusInWindow(); // Request focus when the map editor is opened
+    }
+    
+    public void requestFocusInMapEditor() {
+        // Request focus for the map panel itself
+        mapPanel.requestFocusInWindow();
     }
 }

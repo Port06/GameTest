@@ -7,7 +7,9 @@ com\mycompany\gametest\MapEditor.class
 com\mycompany\gametest\Game$1.class
 com\mycompany\gametest\Menu$2.class
 com\mycompany\gametest\Game$2.class
+com\mycompany\gametest\MapEditor$3.class
 com\mycompany\gametest\TextBox.class
+com\mycompany\gametest\MapEditor$2.class
 com\mycompany\gametest\Player.class
 com\mycompany\gametest\Cell.class
 com\mycompany\gametest\GameRenderer.class

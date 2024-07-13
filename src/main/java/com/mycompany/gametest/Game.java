@@ -1,15 +1,15 @@
 package com.mycompany.gametest;
 
-import java.awt.Graphics;
-import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.Queue;
+import java.util.LinkedList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.Queue;
-import java.util.LinkedList;
+import javax.swing.*;
 
 public class Game extends JFrame {
     private GameMap map;
@@ -18,7 +18,11 @@ public class Game extends JFrame {
     private Menu menu;
     private GameRenderer renderer;
     private BufferedImage offscreen;
-    
+    private JPanel gamePanel;
+    private JPanel cardPanel;
+    private CardLayout cardLayout;
+    private MapEditor mapEditor;
+
     private Queue<TextBox> textBoxQueue;
     private TextBox currentTextBox;
     private ScheduledExecutorService textBoxScheduler;
@@ -35,7 +39,7 @@ public class Game extends JFrame {
                 board1.setCellState(8, i, CellState.WALL.getType(), 14, 4, -1, -1);
             }
         }
-        
+
         board1.setCellState(15, 15, CellState.WATER.getType(), 0, 1, -1, -1);
         board1.setCellState(15, 16, CellState.WATER.getType(), 0, 1, -1, -1);
         board1.setCellState(15, 17, CellState.WATER.getType(), 0, 1, -1, -1);
@@ -46,14 +50,14 @@ public class Game extends JFrame {
         board1.setCellState(17, 16, CellState.WATER.getType(), 2, 1, -1, -1);
         board1.setCellState(17, 17, CellState.WATER.getType(), 2, 1, -1, -1);
 
-        // Configurar portales y sus enlaces
-        board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, 3, 0, 1); // Añadir portal en board1 con link ID 0
-        board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, 3, 1, 0); // Añadir portal en board2 con link ID 1
+        // Configure portals and their links
+        board1.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, 3, 0, 1); // Add portal in board1 with link ID 0
+        board2.setCellState(5, 5, CellState.BOARDSWITCH.getType(), 0, 3, 1, 0); // Add portal in board2 with link ID 1
 
         map.addBoard("MainBoard", board1);
         map.addBoard("SubBoard", board2);
 
-        // Asegúrate de vincular correctamente los portales
+        // Ensure portals are linked correctly
         board1.setPortalLink(0, board2);
         board2.setPortalLink(1, board1);
 
@@ -74,8 +78,12 @@ public class Game extends JFrame {
         // Initialize the textBoxQueue
         textBoxQueue = new LinkedList<>();
 
+        // Initialize the card layout and panels
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+
         // Set up the game panel
-        JPanel gamePanel = new JPanel() {
+        gamePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -120,8 +128,15 @@ public class Game extends JFrame {
             }
         });
 
-        // Add the game panel to the frame
-        setContentPane(gamePanel);
+        // Create the MapEditor instance
+        mapEditor = new MapEditor(this);
+
+        // Add the game panel and map editor to the card panel
+        cardPanel.add(gamePanel, "Game");
+        cardPanel.add(mapEditor.getEditorPanel(), "MapEditor");
+
+        // Set the card panel as the content pane
+        setContentPane(cardPanel);
 
         // Start the player animation scheduler
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -132,7 +147,7 @@ public class Game extends JFrame {
 
     public void pauseGame() {
         isPaused = true;
-        menu.showMenu();
+        menu.showMenu("game");
         repaint();
     }
 
@@ -141,7 +156,23 @@ public class Game extends JFrame {
         menu.hideMenu();
         repaint();
     }
-    
+
+    public void pauseMapEditor() {
+        isPaused = true;
+        menu.showMenu("editor");
+        mapEditor.requestFocusInMapEditor(); // Request focus for map editor panel
+        // Optionally disable any game controls or actions during map editor pause
+        repaint();
+    }
+
+    public void resumeMapEditor() {
+        isPaused = false;
+        menu.hideMenu();
+        // Ensure focus is returned to the game panel after closing map editor
+        gamePanel.requestFocusInWindow();
+        repaint();
+    }
+
     public void addTextBox(String text, int x, int y, int width, int height) {
         TextBox newTextBox = new TextBox(x, y, width, height);
         newTextBox.showText(text);
@@ -175,6 +206,43 @@ public class Game extends JFrame {
             // Show the next text box if available
             showNextTextBox();
         }
+    }
+
+    public void openMapEditor() {
+            menu.hideMenu(); // Ensure menu is hidden before opening map editor
+            mapEditor.loadBoard(map.getCurrentBoard().getName());
+            cardLayout.show(cardPanel, "MapEditor");
+
+            // Request focus for a component within the map editor panel
+            mapEditor.requestFocusInMapEditor(); 
+    }
+
+    public void openGameView() {
+        menu.hideMenu();
+        isPaused = false;  // Ensure game is not paused when returning
+        map.setCurrentBoard(player.getCurrentBoard().getName()); // Ensure the board is set to the player's current board
+        cardLayout.show(cardPanel, "Game");
+        gamePanel.requestFocusInWindow(); // Request focus for game panel
+    }
+
+    public GameMap getMap() {
+        return map;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+    
+    public boolean getPaused() {
+        return isPaused;
+    }
+    
+    public Menu getMenu() {
+        return menu;
+    }
+    
+    public JPanel getGamePanel() {
+        return gamePanel;
     }
 
     public static void main(String[] args) {

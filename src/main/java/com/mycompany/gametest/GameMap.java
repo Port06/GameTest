@@ -1,7 +1,9 @@
 package com.mycompany.gametest;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GameMap {
     private Map<String, Board> boards;
@@ -55,5 +57,10 @@ public class GameMap {
     // Method to retrieve the map of boards
     public Map<String, Board> getBoards() {
         return boards;
+    }
+
+    // Method to retrieve the names of all boards
+    public List<String> getBoardNames() {
+        return boards.keySet().stream().collect(Collectors.toList());
     }
 }

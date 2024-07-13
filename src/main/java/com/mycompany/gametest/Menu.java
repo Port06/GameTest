@@ -10,7 +10,8 @@ public class Menu {
     private JPanel menuPanel;
     private JButton resumeButton;
     private JButton mapEditorButton;
-    private MapEditor mapEditor;
+    private JButton switchToGameButton;
+    private boolean gamePanelVisible; // Add this variable
 
     public Menu(Game game) {
         this.game = game;
@@ -25,22 +26,42 @@ public class Menu {
         };
         menuPanel.setOpaque(true);
         menuPanel.setBackground(new Color(128, 128, 128, 192)); // Grayish with some transparency
-        menuPanel.setLayout(null); // Use absolute positioning for the button
+        menuPanel.setLayout(null); // Use absolute positioning for the buttons
 
         // Create the resume button and position it within the menu panel
         resumeButton = new JButton("Resume");
-        resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30); // Position the button
-        resumeButton.addActionListener(e -> game.resumeGame());
+        resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30); // Position the button
+        resumeButton.addActionListener(e -> {
+            if (game.getPaused()) {
+                game.resumeGame();
+                menuPanel.requestFocusInWindow(); // Ensure focus is set to the menu panel
+            } else {
+                game.resumeMapEditor();
+                menuPanel.requestFocusInWindow(); // Ensure focus is set to the menu panel
+            }
+        });
         menuPanel.add(resumeButton);
 
         // Create the map editor button and position it within the menu panel
         mapEditorButton = new JButton("Map Editor");
-        mapEditorButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30); // Position the button
-        mapEditorButton.addActionListener(e -> openMapEditor());  // Add action listener to call openMapEditor
+        mapEditorButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30); // Position the button
+        mapEditorButton.addActionListener(e -> {
+            if (game.getPaused()) {
+                game.openMapEditor();
+            }
+        });
         menuPanel.add(mapEditorButton);
 
-        // Create the MapEditor instance
-        mapEditor = new MapEditor();
+        // Create the switch to game button and position it within the menu panel
+        switchToGameButton = new JButton("Go to Game");
+        switchToGameButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30); // Position the button
+        switchToGameButton.addActionListener(e -> {
+            if (game.getPaused()) {
+                game.openGameView();
+            }
+        });
+        switchToGameButton.setVisible(false); // Initially hidden
+        menuPanel.add(switchToGameButton);
 
         // Add the menu panel to the game's layered pane
         game.getLayeredPane().add(menuPanel, JLayeredPane.PALETTE_LAYER);
@@ -54,8 +75,9 @@ public class Menu {
                 menuPanel.setBounds(0, game.getHeight() / 3, game.getWidth(), game.getHeight() / 3);
 
                 // Update bounds of the buttons
-                resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30);
-                mapEditorButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 100, 30);
+                resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
+                mapEditorButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
+                switchToGameButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
 
                 // Repaint to apply the changes
                 menuPanel.repaint();
@@ -63,11 +85,33 @@ public class Menu {
         });
     }
 
-    public void showMenu() {
+    public void showMenu(String context) {
+        switch (context) {
+            case "game":
+                mapEditorButton.setVisible(true);
+                switchToGameButton.setVisible(false);
+
+                // Disable interaction with the game panel
+                game.getGamePanel().setEnabled(false);  // Replace with the correct method to get game panel
+
+                break;
+            case "editor":
+                mapEditorButton.setVisible(false);
+                switchToGameButton.setVisible(true);
+
+                // Enable interaction with the game panel
+                game.getGamePanel().setEnabled(true);  // Replace with the correct method to get game panel
+
+                break;
+        }
+
+        gamePanelVisible = true; // Set the variable to true when menu is shown
         menuPanel.setVisible(true);
+        menuPanel.requestFocusInWindow(); // Ensure focus is set to the menu panel
     }
 
     public void hideMenu() {
+        gamePanelVisible = false; // Set the variable to false when menu is hidden
         menuPanel.setVisible(false);
     }
 
@@ -79,7 +123,8 @@ public class Menu {
         g2d.fillRect(0, game.getHeight() / 3, game.getWidth(), game.getHeight() / 3); // 1/3 of the height centered vertically
     }
 
-    private void openMapEditor() {
-        mapEditor.openEditor(); // Call the method in the MapEditor class to open the editor
+    // Getter for the gamePanelVisible variable
+    public boolean isGamePanelVisible() {
+        return gamePanelVisible;
     }
 }

@@ -152,6 +152,10 @@ public class Player {
     public int getCurrentTextureId() {
         return currentTextureId;
     }
+    
+    public Board getCurrentBoard() {
+        return currentBoard;
+    }
 
     public void stopAnimation() {
         if (animationScheduler != null && !animationScheduler.isShutdown()) {
