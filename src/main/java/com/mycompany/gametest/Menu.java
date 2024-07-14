@@ -24,27 +24,28 @@ public class Menu {
                 drawMenu(g);
             }
         };
+        menuPanel.setFocusable(false); // Ensure the menu panel itself is not focusable
         menuPanel.setOpaque(true);
-        menuPanel.setBackground(new Color(128, 128, 128, 192)); // Grayish with some transparency
-        menuPanel.setLayout(null); // Use absolute positioning for the buttons
+        menuPanel.setBackground(new Color(128, 128, 128, 192));
+        menuPanel.setLayout(null);
 
         // Create the resume button and position it within the menu panel
         resumeButton = new JButton("Resume");
-        resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30); // Position the button
+        resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
         resumeButton.addActionListener(e -> {
             if (game.getPaused()) {
                 game.resumeGame();
-                menuPanel.requestFocusInWindow(); // Ensure focus is set to the menu panel
+                game.getGamePanel().requestFocusInWindow();
             } else {
                 game.resumeMapEditor();
-                menuPanel.requestFocusInWindow(); // Ensure focus is set to the menu panel
+                game.getMapEditor().getEditorPanel().requestFocusInWindow();
             }
         });
         menuPanel.add(resumeButton);
 
         // Create the map editor button and position it within the menu panel
         mapEditorButton = new JButton("Map Editor");
-        mapEditorButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30); // Position the button
+        mapEditorButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
         mapEditorButton.addActionListener(e -> {
             if (game.getPaused()) {
                 game.openMapEditor();
@@ -54,7 +55,7 @@ public class Menu {
 
         // Create the switch to game button and position it within the menu panel
         switchToGameButton = new JButton("Go to Game");
-        switchToGameButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30); // Position the button
+        switchToGameButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
         switchToGameButton.addActionListener(e -> {
             if (game.getPaused()) {
                 game.openGameView();
@@ -65,13 +66,12 @@ public class Menu {
 
         // Add the menu panel to the game's layered pane
         game.getLayeredPane().add(menuPanel, JLayeredPane.PALETTE_LAYER);
-        menuPanel.setVisible(false); // Initially hidden
+        menuPanel.setVisible(false);
 
         // Add a component listener to handle resizing
         game.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                // Update menu panel size and position
                 menuPanel.setBounds(0, game.getHeight() / 3, game.getWidth(), game.getHeight() / 3);
 
                 // Update bounds of the buttons
@@ -79,7 +79,6 @@ public class Menu {
                 mapEditorButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
                 switchToGameButton.setBounds(3 * game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
 
-                // Repaint to apply the changes
                 menuPanel.repaint();
             }
         });
@@ -90,29 +89,25 @@ public class Menu {
             case "game":
                 mapEditorButton.setVisible(true);
                 switchToGameButton.setVisible(false);
-
-                // Disable interaction with the game panel
-                game.getGamePanel().setEnabled(false);  // Replace with the correct method to get game panel
-
+                game.getGamePanel().setEnabled(false);
                 break;
             case "editor":
                 mapEditorButton.setVisible(false);
                 switchToGameButton.setVisible(true);
-
-                // Enable interaction with the game panel
-                game.getGamePanel().setEnabled(true);  // Replace with the correct method to get game panel
-
+                game.getGamePanel().setEnabled(true);
                 break;
         }
 
-        gamePanelVisible = true; // Set the variable to true when menu is shown
+        gamePanelVisible = true;
         menuPanel.setVisible(true);
-        menuPanel.requestFocusInWindow(); // Ensure focus is set to the menu panel
+
     }
 
     public void hideMenu() {
-        gamePanelVisible = false; // Set the variable to false when menu is hidden
         menuPanel.setVisible(false);
+        gamePanelVisible = false;
+        game.getGamePanel().requestFocusInWindow();
+        game.repaint();
     }
 
     private void drawMenu(Graphics g) {
@@ -126,5 +121,14 @@ public class Menu {
     // Getter for the gamePanelVisible variable
     public boolean isGamePanelVisible() {
         return gamePanelVisible;
+    }
+    
+    public void clearFocus() {
+        menuPanel.setFocusable(false);
+        game.getLayeredPane().requestFocusInWindow();
+    }
+    
+    public JPanel getMenuPanel() {
+        return menuPanel;
     }
 }

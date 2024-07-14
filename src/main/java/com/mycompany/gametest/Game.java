@@ -1,6 +1,8 @@
 package com.mycompany.gametest;
 
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -28,15 +30,16 @@ public class Game extends JFrame {
     private ScheduledExecutorService textBoxScheduler;
 
     public Game() {
+        
         map = new GameMap();
         Board board1 = new Board(32, 32, map);
         Board board2 = new Board(12, 12, map);
 
         // Set up some WALL cells for testing
         for (int i = 0; i < 32; i++) {
-            board1.setCellState(0, i, CellState.WALL.getType(), i % 12, 4, -1, -1);
+            board1.setCellState(0, i, CellState.WALL.getType(), i % 12, 3, -1, -1);
             if (i % 2 == 0) {
-                board1.setCellState(8, i, CellState.WALL.getType(), 14, 4, -1, -1);
+                board1.setCellState(8, i, CellState.WALL.getType(), 14, 3, -1, -1);
             }
         }
 
@@ -95,41 +98,38 @@ public class Game extends JFrame {
                 }
             }
         };
-        gamePanel.setFocusable(true);
+        gamePanel.setFocusable(true);     
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                System.out.println("Key pressed: " + e.getKeyCode()); // Debug statement
                 if (!isPaused) {
                     switch (e.getKeyCode()) {
-                        case KeyEvent.VK_UP:
-                        case KeyEvent.VK_W:
-                            player.move(0, -1);
-                            break;
-                        case KeyEvent.VK_DOWN:
-                        case KeyEvent.VK_S:
-                            player.move(0, 1);
-                            break;
-                        case KeyEvent.VK_LEFT:
-                        case KeyEvent.VK_A:
-                            player.move(-1, 0);
-                            break;
-                        case KeyEvent.VK_RIGHT:
-                        case KeyEvent.VK_D:
-                            player.move(1, 0);
-                            break;
-                        case KeyEvent.VK_ESCAPE:
-                            pauseGame();
-                            break;
-                    }
-                    repaint();
-                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    resumeGame();
+                    case KeyEvent.VK_UP:
+                    case KeyEvent.VK_W:
+                        player.move(0, -1);
+                        break;
+                    case KeyEvent.VK_DOWN:
+                    case KeyEvent.VK_S:
+                        player.move(0, 1);
+                        break;
+                    case KeyEvent.VK_LEFT:
+                    case KeyEvent.VK_A:
+                        player.move(-1, 0);
+                        break;
+                    case KeyEvent.VK_RIGHT:
+                    case KeyEvent.VK_D:
+                        player.move(1, 0);
+                        break;
+                    case KeyEvent.VK_ESCAPE:
+                        pauseGame();
+                        break;
+                }
+                repaint();
                 }
             }
         });
 
-        // Create the MapEditor instance
+         // Create the MapEditor instance
         mapEditor = new MapEditor(this);
 
         // Add the game panel and map editor to the card panel
@@ -142,6 +142,43 @@ public class Game extends JFrame {
         // Start the player animation scheduler
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(this::repaint, 0, 400, TimeUnit.MILLISECONDS);
+
+        // Add focus listeners for debugging
+        gamePanel.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                System.out.println("GamePanel gained focus");
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                System.out.println("GamePanel lost focus");
+            }
+        });
+
+        mapEditor.getEditorPanel().addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                System.out.println("MapEditor panel gained focus");
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                System.out.println("MapEditor panel lost focus");
+            }
+        });
+
+        menu.getMenuPanel().addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                System.out.println("MenuPanel gained focus");
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                System.out.println("MenuPanel lost focus");
+            }
+        });
 
         setVisible(true);
     }
@@ -157,12 +194,11 @@ public class Game extends JFrame {
         isPaused = false;
         menu.hideMenu();
 
-        // Request focus for the JFrame and game panel
-        requestFocus();
-        gamePanel.requestFocus();
+        SwingUtilities.invokeLater(() -> {
+            gamePanel.requestFocusInWindow();
+            System.out.println("resumeGame: gamePanel focus=" + gamePanel.isFocusOwner());
+        });
 
-        // Ensure the game is not paused
-        isPaused = false;
         repaint();
     }
 
@@ -177,7 +213,12 @@ public class Game extends JFrame {
     public void resumeMapEditor() {
         isPaused = false;
         menu.hideMenu();
-        mapEditor.getEditorPanel().requestFocusInWindow(); // Request focus for map editor panel
+
+        SwingUtilities.invokeLater(() -> {
+            mapEditor.getEditorPanel().requestFocusInWindow(); // Request focus for editorPanel
+            System.out.println("resumeMapEditor: mapEditor panel focus=" + mapEditor.getEditorPanel().isFocusOwner());
+        });
+
         repaint();
     }
 
@@ -216,21 +257,32 @@ public class Game extends JFrame {
         }
     }
 
-    public void openMapEditor() {
-            menu.hideMenu(); // Ensure menu is hidden before opening map editor
-            mapEditor.loadBoard(map.getCurrentBoard().getName());
-            cardLayout.show(cardPanel, "MapEditor");
+     public void openMapEditor() {
+        menu.hideMenu();
+        mapEditor.loadBoard(map.getCurrentBoard().getName());
+        cardLayout.show(cardPanel, "MapEditor");
 
-            // Request focus for a component within the map editor panel
-            mapEditor.requestFocusInMapEditor(); 
+        SwingUtilities.invokeLater(() -> {
+            mapEditor.getEditorPanel().requestFocusInWindow(); // Request focus for editorPanel
+            System.out.println("openMapEditor: mapEditor panel focus=" + mapEditor.getEditorPanel().isFocusOwner());
+        });
+
+        repaint();
     }
+
 
     public void openGameView() {
         menu.hideMenu();
-        isPaused = false;  // Ensure game is not paused when returning
-        map.setCurrentBoard(player.getCurrentBoard().getName()); // Ensure the board is set to the player's current board
+        isPaused = false;
+        map.setCurrentBoard(player.getCurrentBoard().getName());
         cardLayout.show(cardPanel, "Game");
-        gamePanel.requestFocusInWindow(); // Request focus for game panel
+
+        SwingUtilities.invokeLater(() -> {
+            gamePanel.requestFocusInWindow(); // Request focus for gamePanel
+            System.out.println("openGameView: gamePanel focus=" + gamePanel.isFocusOwner());
+        });
+
+        repaint();
     }
 
     public GameMap getMap() {
@@ -251,6 +303,10 @@ public class Game extends JFrame {
     
     public JPanel getGamePanel() {
         return gamePanel;
+    }
+    
+    public MapEditor getMapEditor() {
+        return mapEditor;
     }
 
     public static void main(String[] args) {

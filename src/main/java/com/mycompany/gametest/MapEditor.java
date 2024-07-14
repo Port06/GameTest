@@ -21,6 +21,9 @@ public class MapEditor {
         this.game = game;
         this.gameRenderer = new GameRenderer(game.getMap(), game.getPlayer());
         initializeEditorPanel();
+
+        // Ensure the map panel is focusable and requests focus properly
+        mapPanel.setFocusable(true);
         mapPanel.requestFocusInWindow(); // Ensure map panel requests focus immediately
     }
 
@@ -75,22 +78,25 @@ public class MapEditor {
     public JPanel getEditorPanel() {
         return editorPanel;
     }
+    
+    public JPanel getMapPanel() {
+        return mapPanel;
+    }
 
     public void loadBoard(String boardName) {
-        if (!game.getMenu().isGamePanelVisible()) { // Check if the game panel menu is not visible
+        if (!game.getMenu().isGamePanelVisible()) {
             game.getMap().setCurrentBoard(boardName);
-            mapPanel.requestFocusInWindow();
+            editorPanel.requestFocusInWindow(); // Ensure focus for editorPanel
             mapPanel.repaint();
         }
     }
 
     public void openEditor() {
         game.openMapEditor();
-        mapPanel.requestFocusInWindow(); // Request focus when the map editor is opened
+        editorPanel.requestFocusInWindow(); // Ensure focus for editorPanel
     }
     
     public void requestFocusInMapEditor() {
-        // Request focus for the map panel itself
-        mapPanel.requestFocusInWindow();
+        editorPanel.requestFocusInWindow(); // Ensure focus for editorPanel
     }
 }
