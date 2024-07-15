@@ -36,9 +36,11 @@ public class Menu {
             if (game.getPaused()) {
                 game.resumeGame();
                 game.getGamePanel().requestFocusInWindow();
+                hideMenu();
             } else {
                 game.resumeMapEditor();
                 game.getMapEditor().getEditorPanel().requestFocusInWindow();
+                hideMenu();
             }
         });
         menuPanel.add(resumeButton);
@@ -100,13 +102,10 @@ public class Menu {
 
         gamePanelVisible = true;
         menuPanel.setVisible(true);
-
     }
 
     public void hideMenu() {
         menuPanel.setVisible(false);
-        gamePanelVisible = false;
-        game.getGamePanel().requestFocusInWindow();
         game.repaint();
     }
 
@@ -122,12 +121,7 @@ public class Menu {
     public boolean isGamePanelVisible() {
         return gamePanelVisible;
     }
-    
-    public void clearFocus() {
-        menuPanel.setFocusable(false);
-        game.getLayeredPane().requestFocusInWindow();
-    }
-    
+
     public JPanel getMenuPanel() {
         return menuPanel;
     }

@@ -148,4 +148,15 @@ public class Board extends JPanel {
     public GameMap getGameMap() {
         return gameMap;
     }
+    
+    public boolean containsPlayer(Player player) {
+        // Assuming you have a way to determine the player's position on the board
+        int playerX = player.getX();
+        int playerY = player.getY();
+        return isInBounds(playerX, playerY);
+    }
+
+    private boolean isInBounds(int x, int y) {
+        return x >= 0 && x < getWidth() && y >= 0 && y < getHeight();
+    }
 }

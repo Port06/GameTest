@@ -54,6 +54,23 @@ public class GameMap {
         }
     }
 
+    public String getBoardContainingPlayer(Player player) {
+        for (String boardName : getBoardNames()) {
+            if (isPlayerOnBoard(player, boardName)) {
+                return boardName;
+            }
+        }
+        return null; // Or handle this case appropriately
+    }
+    
+     private boolean isPlayerOnBoard(Player player, String boardName) {
+        Board board = getBoard(boardName);
+        if (board == null) {
+            return false;
+        }
+        return board.containsPlayer(player);
+    }
+    
     // Method to retrieve the map of boards
     public Map<String, Board> getBoards() {
         return boards;

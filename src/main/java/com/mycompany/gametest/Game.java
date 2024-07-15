@@ -186,20 +186,12 @@ public class Game extends JFrame {
     public void pauseGame() {
         isPaused = true;
         menu.showMenu("game");
-        requestFocusInWindow();
         repaint();
     }
 
     public void resumeGame() {
         isPaused = false;
         menu.hideMenu();
-
-        SwingUtilities.invokeLater(() -> {
-            gamePanel.requestFocusInWindow();
-            System.out.println("resumeGame: gamePanel focus=" + gamePanel.isFocusOwner());
-        });
-
-        repaint();
     }
 
     public void pauseMapEditor() {
@@ -213,13 +205,6 @@ public class Game extends JFrame {
     public void resumeMapEditor() {
         isPaused = false;
         menu.hideMenu();
-
-        SwingUtilities.invokeLater(() -> {
-            mapEditor.getEditorPanel().requestFocusInWindow(); // Request focus for editorPanel
-            System.out.println("resumeMapEditor: mapEditor panel focus=" + mapEditor.getEditorPanel().isFocusOwner());
-        });
-
-        repaint();
     }
 
     public void addTextBox(String text, int x, int y, int width, int height) {
@@ -251,38 +236,9 @@ public class Game extends JFrame {
         if (currentTextBox != null) {
             currentTextBox.hideText();
             repaint();
-
-            // Show the next text box if available
+            currentTextBox = null;
             showNextTextBox();
         }
-    }
-
-     public void openMapEditor() {
-        menu.hideMenu();
-        mapEditor.loadBoard(map.getCurrentBoard().getName());
-        cardLayout.show(cardPanel, "MapEditor");
-
-        SwingUtilities.invokeLater(() -> {
-            mapEditor.getEditorPanel().requestFocusInWindow(); // Request focus for editorPanel
-            System.out.println("openMapEditor: mapEditor panel focus=" + mapEditor.getEditorPanel().isFocusOwner());
-        });
-
-        repaint();
-    }
-
-
-    public void openGameView() {
-        menu.hideMenu();
-        isPaused = false;
-        map.setCurrentBoard(player.getCurrentBoard().getName());
-        cardLayout.show(cardPanel, "Game");
-
-        SwingUtilities.invokeLater(() -> {
-            gamePanel.requestFocusInWindow(); // Request focus for gamePanel
-            System.out.println("openGameView: gamePanel focus=" + gamePanel.isFocusOwner());
-        });
-
-        repaint();
     }
 
     public GameMap getMap() {
@@ -292,21 +248,47 @@ public class Game extends JFrame {
     public Player getPlayer() {
         return player;
     }
-    
+
     public boolean getPaused() {
         return isPaused;
     }
-    
+
     public Menu getMenu() {
         return menu;
     }
-    
+
     public JPanel getGamePanel() {
         return gamePanel;
     }
-    
+
     public MapEditor getMapEditor() {
         return mapEditor;
+    }
+
+    public void openMapEditor() {
+        cardLayout.show(cardPanel, "MapEditor");
+        mapEditor.requestFocusInMapEditor(); // Ensure focus for map editor
+    }
+
+    public void openGameView() {
+        // Find the board containing the player
+        String boardName = getMap().getBoardContainingPlayer(getPlayer());
+
+        // Set the current board to the one containing the player
+        if (boardName != null) {
+            getMap().setCurrentBoard(boardName);
+        } else {
+            System.out.println("Player is not on any board.");
+        }
+
+        // Switch to the game view
+        cardLayout.show(cardPanel, "Game");
+
+        // Request focus for the game panel
+        SwingUtilities.invokeLater(() -> {
+            gamePanel.requestFocusInWindow();
+            System.out.println("openGameView: gamePanel focus=" + gamePanel.isFocusOwner());
+        });
     }
 
     public static void main(String[] args) {
