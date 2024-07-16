@@ -30,7 +30,6 @@ public class Game extends JFrame {
     private ScheduledExecutorService textBoxScheduler;
 
     public Game() {
-        
         map = new GameMap();
         Board board1 = new Board(32, 32, map);
         Board board2 = new Board(12, 12, map);
@@ -98,38 +97,38 @@ public class Game extends JFrame {
                 }
             }
         };
-        gamePanel.setFocusable(true);     
+        gamePanel.setFocusable(true);
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (!isPaused) {
                     switch (e.getKeyCode()) {
-                    case KeyEvent.VK_UP:
-                    case KeyEvent.VK_W:
-                        player.move(0, -1);
-                        break;
-                    case KeyEvent.VK_DOWN:
-                    case KeyEvent.VK_S:
-                        player.move(0, 1);
-                        break;
-                    case KeyEvent.VK_LEFT:
-                    case KeyEvent.VK_A:
-                        player.move(-1, 0);
-                        break;
-                    case KeyEvent.VK_RIGHT:
-                    case KeyEvent.VK_D:
-                        player.move(1, 0);
-                        break;
-                    case KeyEvent.VK_ESCAPE:
-                        pauseGame();
-                        break;
-                }
-                repaint();
+                        case KeyEvent.VK_UP:
+                        case KeyEvent.VK_W:
+                            player.move(0, -1);
+                            break;
+                        case KeyEvent.VK_DOWN:
+                        case KeyEvent.VK_S:
+                            player.move(0, 1);
+                            break;
+                        case KeyEvent.VK_LEFT:
+                        case KeyEvent.VK_A:
+                            player.move(-1, 0);
+                            break;
+                        case KeyEvent.VK_RIGHT:
+                        case KeyEvent.VK_D:
+                            player.move(1, 0);
+                            break;
+                        case KeyEvent.VK_ESCAPE:
+                            pauseGame();
+                            break;
+                    }
+                    repaint();
                 }
             }
         });
 
-         // Create the MapEditor instance
+        // Create the MapEditor instance
         mapEditor = new MapEditor(this);
 
         // Add the game panel and map editor to the card panel

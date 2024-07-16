@@ -106,6 +106,24 @@ public class Menu {
 
     public void hideMenu() {
         menuPanel.setVisible(false);
+
+        // Request focus on the appropriate panel
+        if (game.getPaused()) {
+            if (game.getMapEditor().getEditorPanel().isVisible()) {
+                SwingUtilities.invokeLater(() -> {
+                    game.getMapEditor().getEditorPanel().requestFocusInWindow();
+                });
+            } else {
+                SwingUtilities.invokeLater(() -> {
+                    game.getGamePanel().requestFocusInWindow();
+                });
+            }
+        } else {
+            SwingUtilities.invokeLater(() -> {
+                game.getGamePanel().requestFocusInWindow();
+            });
+        }
+
         game.repaint();
     }
 
