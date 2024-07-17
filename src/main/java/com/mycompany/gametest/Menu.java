@@ -11,7 +11,7 @@ public class Menu {
     private JButton resumeButton;
     private JButton mapEditorButton;
     private JButton switchToGameButton;
-    private boolean gamePanelVisible; // Add this variable
+    private boolean gamePanelVisible;
 
     public Menu(Game game) {
         this.game = game;
@@ -24,7 +24,7 @@ public class Menu {
                 drawMenu(g);
             }
         };
-        menuPanel.setFocusable(false); // Ensure the menu panel itself is not focusable
+        menuPanel.setFocusable(false);
         menuPanel.setOpaque(true);
         menuPanel.setBackground(new Color(128, 128, 128, 192));
         menuPanel.setLayout(null);
@@ -106,24 +106,6 @@ public class Menu {
 
     public void hideMenu() {
         menuPanel.setVisible(false);
-
-        // Request focus on the appropriate panel
-        if (game.getPaused()) {
-            if (game.getMapEditor().getEditorPanel().isVisible()) {
-                SwingUtilities.invokeLater(() -> {
-                    game.getMapEditor().getEditorPanel().requestFocusInWindow();
-                });
-            } else {
-                SwingUtilities.invokeLater(() -> {
-                    game.getGamePanel().requestFocusInWindow();
-                });
-            }
-        } else {
-            SwingUtilities.invokeLater(() -> {
-                game.getGamePanel().requestFocusInWindow();
-            });
-        }
-
         game.repaint();
     }
 
@@ -131,11 +113,10 @@ public class Menu {
         Graphics2D g2d = (Graphics2D) g;
 
         // Draw semi-transparent background
-        g2d.setColor(new Color(128, 128, 128, 192)); // Grayish with some transparency
-        g2d.fillRect(0, game.getHeight() / 3, game.getWidth(), game.getHeight() / 3); // 1/3 of the height centered vertically
+        g2d.setColor(new Color(128, 128, 128, 192));
+        g2d.fillRect(0, game.getHeight() / 3, game.getWidth(), game.getHeight() / 3);
     }
 
-    // Getter for the gamePanelVisible variable
     public boolean isGamePanelVisible() {
         return gamePanelVisible;
     }

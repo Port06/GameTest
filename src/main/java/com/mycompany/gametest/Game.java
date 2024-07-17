@@ -28,6 +28,7 @@ public class Game extends JFrame {
     private Queue<TextBox> textBoxQueue;
     private TextBox currentTextBox;
     private ScheduledExecutorService textBoxScheduler;
+    private ScheduledExecutorService gameUpdateScheduler;
 
     public Game() {
         map = new GameMap();
@@ -132,15 +133,14 @@ public class Game extends JFrame {
         mapEditor = new MapEditor(this);
 
         // Add the game panel and map editor to the card panel
-        cardPanel.add(gamePanel, "Game");
-        cardPanel.add(mapEditor.getEditorPanel(), "MapEditor");
+        cardPanel.add(gamePanel, "game");  // Ensure this matches the name used in openGameView
+        cardPanel.add(mapEditor.getEditorPanel(), "editor");  // Ensure this matches the name used in openMapEditor
 
         // Set the card panel as the content pane
         setContentPane(cardPanel);
 
-        // Start the player animation scheduler
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(this::repaint, 0, 400, TimeUnit.MILLISECONDS);
+        // Initialize the player animation scheduler
+        startGameLoop();
 
         // Add focus listeners for debugging
         gamePanel.addFocusListener(new FocusListener() {
@@ -182,27 +182,56 @@ public class Game extends JFrame {
         setVisible(true);
     }
 
+    private void startGameLoop() {
+        gameUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
+        gameUpdateScheduler.scheduleAtFixedRate(this::repaint, 0, 400, TimeUnit.MILLISECONDS);
+    }
+
+    private void stopGameLoop() {
+        if (gameUpdateScheduler != null && !gameUpdateScheduler.isShutdown()) {
+            gameUpdateScheduler.shutdownNow();
+        }
+    }
+
     public void pauseGame() {
         isPaused = true;
+        stopGameLoop();
         menu.showMenu("game");
         repaint();
     }
 
     public void resumeGame() {
         isPaused = false;
+        startGameLoop();
         menu.hideMenu();
+    }
+    
+    public void openGameView() {
+        cardLayout.show(cardPanel, "game");
+        gamePanel.requestFocusInWindow();
+        startGameLoop();
+        repaint();
     }
 
     public void pauseMapEditor() {
         isPaused = true;
+        stopGameLoop();
         menu.showMenu("editor");
         mapEditor.requestFocusInMapEditor(); // Request focus for map editor panel
         // Optionally disable any game controls or actions during map editor pause
         repaint();
     }
+    
+    public void openMapEditor() {
+        cardLayout.show(cardPanel, "editor");
+        mapEditor.requestFocusInMapEditor();
+        startGameLoop();
+        repaint();
+    }
 
     public void resumeMapEditor() {
         isPaused = false;
+        startGameLoop();
         menu.hideMenu();
     }
 
@@ -223,74 +252,47 @@ public class Game extends JFrame {
 
             // Calculate display time based on queue size
             int queueSize = textBoxQueue.size();
-            long displayTime = Math.max(250, (long) (2500 - (queueSize * 300))); // Minimum display time is 0.75 seconds
+            long displayTime = Math.max(250, (long) (2500 - (queueSize * 300))); // Minimum display time is 250ms
+
             textBoxScheduler = Executors.newSingleThreadScheduledExecutor();
-            textBoxScheduler.schedule(this::hideCurrentTextBox, displayTime, TimeUnit.MILLISECONDS);
+            textBoxScheduler.schedule(this::showNextTextBox, displayTime, TimeUnit.MILLISECONDS);
         } else {
             currentTextBox = null;
+            if (textBoxScheduler != null && !textBoxScheduler.isShutdown()) {
+                textBoxScheduler.shutdownNow();
+            }
         }
-    }
-
-    private void hideCurrentTextBox() {
-        if (currentTextBox != null) {
-            currentTextBox.hideText();
-            repaint();
-            currentTextBox = null;
-            showNextTextBox();
-        }
-    }
-
-    public GameMap getMap() {
-        return map;
-    }
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public boolean getPaused() {
-        return isPaused;
-    }
-
-    public Menu getMenu() {
-        return menu;
     }
 
     public JPanel getGamePanel() {
         return gamePanel;
     }
+    
+    public GameMap getMap() {
+        return map;
+    }
+    
+    public Player getPlayer() {
+        return player;
+    }
+    
+    public Menu getMenu() {
+        return menu;
+    }
+    
+    public boolean getPaused() {
+        return isPaused;
+    }
+
+    public CardLayout getCardLayout() {
+        return cardLayout;
+    }
+
+    public JPanel getCardPanel() {
+        return cardPanel;
+    }
 
     public MapEditor getMapEditor() {
         return mapEditor;
-    }
-
-    public void openMapEditor() {
-        cardLayout.show(cardPanel, "MapEditor");
-        mapEditor.requestFocusInMapEditor(); // Ensure focus for map editor
-    }
-
-    public void openGameView() {
-        // Find the board containing the player
-        String boardName = getMap().getBoardContainingPlayer(getPlayer());
-
-        // Set the current board to the one containing the player
-        if (boardName != null) {
-            getMap().setCurrentBoard(boardName);
-        } else {
-            System.out.println("Player is not on any board.");
-        }
-
-        // Switch to the game view
-        cardLayout.show(cardPanel, "Game");
-
-        // Request focus for the game panel
-        SwingUtilities.invokeLater(() -> {
-            gamePanel.requestFocusInWindow();
-            System.out.println("openGameView: gamePanel focus=" + gamePanel.isFocusOwner());
-        });
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(Game::new);
     }
 }

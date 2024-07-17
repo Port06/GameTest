@@ -90,56 +90,56 @@ public class MapEditor {
         mapPanel.requestFocusInWindow();
     }
 
-   private void populateAssetPanel() {
-    System.out.println("Populating asset panel...");
-    assetPanel.removeAll(); // Clear existing components
+    private void populateAssetPanel() {
+        System.out.println("Populating asset panel...");
+        assetPanel.removeAll(); // Clear existing components
 
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(5, 5, 5, 5); // Add padding between elements
-    gbc.anchor = GridBagConstraints.NORTHWEST; // Align components to the top-left corner
-    gbc.fill = GridBagConstraints.HORIZONTAL; // Fill horizontally
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5); // Add padding between elements
+        gbc.anchor = GridBagConstraints.NORTHWEST; // Align components to the top-left corner
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Fill horizontally
 
-    int col = 0;
-    int row = 0;
+        int col = 0;
+        int row = 0;
 
-    // Iterate through all states in Assets.textures
-    for (CellState state : Assets.textures.keySet()) {
-        Map<Integer, BufferedImage> textureMap = Assets.textures.get(state);
-        for (int textureId : textureMap.keySet()) {
-            BufferedImage texture = textureMap.get(textureId);
-            if (texture != null) {
-                System.out.println("Loading texture for state " + state + " with ID: " + textureId);
-                Image scaledImage = texture.getScaledInstance(32, 32, Image.SCALE_SMOOTH); // Resize image to 32x32
-                ImageIcon icon = new ImageIcon(scaledImage);
-                JLabel textureLabel = new JLabel(icon);
-                textureLabel.setToolTipText(state + " ID: " + textureId);
+        // Iterate through all states in Assets.textures
+        for (CellState state : Assets.textures.keySet()) {
+            Map<Integer, BufferedImage> textureMap = Assets.textures.get(state);
+            for (int textureId : textureMap.keySet()) {
+                BufferedImage texture = textureMap.get(textureId);
+                if (texture != null) {
+                    System.out.println("Loading texture for state " + state + " with ID: " + textureId);
+                    Image scaledImage = texture.getScaledInstance(32, 32, Image.SCALE_SMOOTH); // Resize image to 32x32
+                    ImageIcon icon = new ImageIcon(scaledImage);
+                    JLabel textureLabel = new JLabel(icon);
+                    textureLabel.setToolTipText(state + " ID: " + textureId);
 
-                // Reset constraints for each label
-                gbc.gridx = col; // Set column for current component
-                gbc.gridy = row; // Set row for current component
+                    // Reset constraints for each label
+                    gbc.gridx = col; // Set column for current component
+                    gbc.gridy = row; // Set row for current component
 
-                // Add texture label to asset panel with current GridBagConstraints
-                assetPanel.add(textureLabel, gbc);
+                    // Add texture label to asset panel with current GridBagConstraints
+                    assetPanel.add(textureLabel, gbc);
 
-                // Increment column index
-                col++;
+                    // Increment column index
+                    col++;
 
-                // Check if we need to wrap to the next row
-                if (col % 2 == 0) {
-                    // Increment row index and reset column index
-                    row++;
-                    col = 0;
+                    // Check if we need to wrap to the next row
+                    if (col % 2 == 0) {
+                        // Increment row index and reset column index
+                        row++;
+                        col = 0;
+                    }
+                } else {
+                    System.out.println("Texture is null for state " + state + " with ID: " + textureId);
                 }
-            } else {
-                System.out.println("Texture is null for state " + state + " with ID: " + textureId);
             }
         }
-    }
 
-    assetPanel.revalidate();
-    assetPanel.repaint();
-    System.out.println("Asset panel populated.");
-}
+        assetPanel.revalidate();
+        assetPanel.repaint();
+        System.out.println("Asset panel populated.");
+    }
 
     public JPanel getEditorPanel() {
         return editorPanel;
@@ -163,6 +163,6 @@ public class MapEditor {
     }
 
     public void requestFocusInMapEditor() {
-        editorPanel.requestFocusInWindow(); // Ensure focus for editorPanel
+        mapPanel.requestFocusInWindow(); // Ensure map panel requests focus
     }
 }
