@@ -148,7 +148,9 @@ public class MapEditor {
     public JPanel getMapPanel() {
         return mapPanel;
     }
-
+    
+    
+    //Does not work fix soon (change this when fixed9
     public void loadBoard(String boardName) {
         if (!game.getMenu().isGamePanelVisible()) {
             game.getMap().setCurrentBoard(boardName);
