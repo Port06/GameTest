@@ -2,6 +2,8 @@ package com.mycompany.gametest;
 
 import java.awt.image.BufferedImage;
 
+
+//Here the diferent behaviours of a cell are differenciated
 public enum CellState {
     EMPTY(0, 0),
     WALL(1, 0),
