@@ -34,6 +34,7 @@ public class Menu {
         resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
         resumeButton.addActionListener(e -> {
             if (game.getPaused()) {
+                System.out.println(game.getPaused());
                 game.resumeGame();
                 game.getGamePanel().requestFocusInWindow();
                 hideMenu();

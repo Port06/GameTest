@@ -252,7 +252,7 @@ public class Game extends JFrame {
 
             // Calculate display time based on queue size
             int queueSize = textBoxQueue.size();
-            long displayTime = Math.max(250, (long) (2500 - (queueSize * 300))); // Minimum display time is 250ms
+            long displayTime = Math.max(250, (long) (2000 - (queueSize * 300))); // Minimum display time is 200ms
 
             textBoxScheduler = Executors.newSingleThreadScheduledExecutor();
             textBoxScheduler.schedule(this::showNextTextBox, displayTime, TimeUnit.MILLISECONDS);
