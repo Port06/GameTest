@@ -1,5 +1,7 @@
 package com.mycompany.gametest;
 
+// Class that defines what is a cell with it's related features
+// like the textures and id's
 public class Cell {
     private CellState state;
     private int textureId;

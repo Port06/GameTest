@@ -1,18 +1,17 @@
 package com.mycompany.gametest;
 
 import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.JPanel;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.util.Queue;
-import java.util.LinkedList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.swing.*;
 
+// Class that has the main logic of the game such as creating a initial board, player movement
+// and much more. (Will be improved on in the future)
 public class Game extends JFrame {
     private GameMap map;
     private Player player;
@@ -24,13 +23,21 @@ public class Game extends JFrame {
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private MapEditor mapEditor;
-
-    private Queue<TextBox> textBoxQueue;
-    private TextBox currentTextBox;
-    private ScheduledExecutorService textBoxScheduler;
+    private TextBox textbox;
     private ScheduledExecutorService gameUpdateScheduler;
+    
+    //Player initializacion variable
+    private int startX = 4;
+    private int startY = 4;
+    private int numberOfLayers = 5;
 
     public Game() {
+        
+        Assets.init(); // Initialize textures for the game
+        
+        
+        // Initializacion of classes
+        
         map = new GameMap();
         Board board1 = new Board(32, 32, map);
         Board board2 = new Board(12, 12, map);
@@ -64,11 +71,15 @@ public class Game extends JFrame {
         board1.setPortalLink(0, board2);
         board2.setPortalLink(1, board1);
 
-        map.setCurrentBoard("MainBoard");
-        player = new Player(4, 4, board1, 5, map, this);
+        map.setCurrentBoard("MainBoard"); 
+        TextBox textBox = new TextBox(250, 50, 300, 20, this);  // 'this' being your Game instance
+        this.player = new Player(startX, startY, board1, numberOfLayers, map, this, textBox);
+        
+        /*
+        -------------------------------------------------------------------------------------------------
+        */
 
-        Assets.init();  // Initialize textures
-
+        // Window customization
         setTitle("Top-Down Game");
         setSize(800, 830);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -77,9 +88,6 @@ public class Game extends JFrame {
         // Initialize the menu and renderer
         menu = new Menu(this);
         renderer = new GameRenderer(map, player);
-
-        // Initialize the textBoxQueue
-        textBoxQueue = new LinkedList<>();
 
         // Initialize the card layout and panels
         cardLayout = new CardLayout();
@@ -91,46 +99,17 @@ public class Game extends JFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 renderer.drawGame(g, offscreen, getWidth(), getHeight());
-
-                // Draw the current TextBox if it is visible
-                if (currentTextBox != null && currentTextBox.isVisible()) {
-                    currentTextBox.drawTextBox(g);
-                }
+                textBox.drawActiveTextBox(g);
             }
         };
         gamePanel.setFocusable(true);
-        gamePanel.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (!isPaused) {
-                    switch (e.getKeyCode()) {
-                        case KeyEvent.VK_UP:
-                        case KeyEvent.VK_W:
-                            player.move(0, -1);
-                            break;
-                        case KeyEvent.VK_DOWN:
-                        case KeyEvent.VK_S:
-                            player.move(0, 1);
-                            break;
-                        case KeyEvent.VK_LEFT:
-                        case KeyEvent.VK_A:
-                            player.move(-1, 0);
-                            break;
-                        case KeyEvent.VK_RIGHT:
-                        case KeyEvent.VK_D:
-                            player.move(1, 0);
-                            break;
-                        case KeyEvent.VK_ESCAPE:
-                            pauseGame();
-                            break;
-                    }
-                    repaint();
-                }
-            }
-        });
+        setupKeyBindingsWithInputMap(gamePanel);
 
         // Create the MapEditor instance
         mapEditor = new MapEditor(this);
+        
+        gamePanel.setFocusable(true);
+        mapEditor.getEditorPanel().setFocusable(true);
 
         // Add the game panel and map editor to the card panel
         cardPanel.add(gamePanel, "game");  // Ensure this matches the name used in openGameView
@@ -141,44 +120,6 @@ public class Game extends JFrame {
 
         // Initialize the player animation scheduler
         startGameLoop();
-
-        // Add focus listeners for debugging
-        gamePanel.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                System.out.println("GamePanel gained focus");
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                System.out.println("GamePanel lost focus");
-            }
-        });
-
-        mapEditor.getEditorPanel().addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                System.out.println("MapEditor panel gained focus");
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                System.out.println("MapEditor panel lost focus");
-            }
-        });
-
-        menu.getMenuPanel().addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                System.out.println("MenuPanel gained focus");
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                System.out.println("MenuPanel lost focus");
-            }
-        });
-
         setVisible(true);
     }
 
@@ -196,14 +137,25 @@ public class Game extends JFrame {
     public void pauseGame() {
         isPaused = true;
         stopGameLoop();
+        // Remove key listeners to ensure a clean state on resume.
+        for (KeyListener kl : gamePanel.getKeyListeners()) {
+            gamePanel.removeKeyListener(kl);
+        }
         menu.showMenu("game");
         repaint();
     }
 
     public void resumeGame() {
         isPaused = false;
+        setupKeyBindingsWithInputMap(gamePanel);  // Reattach keybindings
         startGameLoop();
         menu.hideMenu();
+        // Use invokeLater to ensure the focus request is processed after UI updates.
+        SwingUtilities.invokeLater(() -> {
+            gamePanel.requestFocusInWindow();
+            System.out.println("Focus regained in gamePanel.");
+        });
+        System.out.println("Juego ya no pausado");
     }
     
     public void openGameView() {
@@ -224,7 +176,7 @@ public class Game extends JFrame {
     
     public void openMapEditor() {
         cardLayout.show(cardPanel, "editor");
-        mapEditor.requestFocusInMapEditor();
+        mapEditor.getEditorPanel().requestFocusInWindow();
         startGameLoop();
         repaint();
     }
@@ -234,36 +186,80 @@ public class Game extends JFrame {
         startGameLoop();
         menu.hideMenu();
     }
+    
+    // Here all the keybinds are difened for player movement
+    private void setupKeyBindingsWithInputMap(JPanel panel) {
+        // Use the "WHEN_IN_FOCUSED_WINDOW" condition so key actions work as long as the window is active.
+        InputMap inputMap = panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = panel.getActionMap();
 
-    public void addTextBox(String text, int x, int y, int width, int height) {
-        TextBox newTextBox = new TextBox(x, y, width, height);
-        newTextBox.showText(text);
-        textBoxQueue.add(newTextBox);
-        if (currentTextBox == null) {
-            showNextTextBox();
-        }
-    }
+        // Remove any existing bindings (optional, if you want a clean slate)
+        inputMap.clear();
+        actionMap.clear();
 
-    private void showNextTextBox() {
-        if (!textBoxQueue.isEmpty()) {
-            currentTextBox = textBoxQueue.poll();
-            currentTextBox.showText(currentTextBox.text);
-            repaint();
-
-            // Calculate display time based on queue size
-            int queueSize = textBoxQueue.size();
-            long displayTime = Math.max(250, (long) (2000 - (queueSize * 300))); // Minimum display time is 200ms
-
-            textBoxScheduler = Executors.newSingleThreadScheduledExecutor();
-            textBoxScheduler.schedule(this::showNextTextBox, displayTime, TimeUnit.MILLISECONDS);
-        } else {
-            currentTextBox = null;
-            if (textBoxScheduler != null && !textBoxScheduler.isShutdown()) {
-                textBoxScheduler.shutdownNow();
+        // Bind the UP key (and W) to an action
+        inputMap.put(KeyStroke.getKeyStroke("UP"), "moveUp");
+        inputMap.put(KeyStroke.getKeyStroke("W"), "moveUp");
+        actionMap.put("moveUp", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!isPaused) {
+                    player.move(0, -1);
+                    panel.repaint();
+                }
             }
-        }
-    }
+        });
 
+        // Bind the DOWN key (and S)
+        inputMap.put(KeyStroke.getKeyStroke("DOWN"), "moveDown");
+        inputMap.put(KeyStroke.getKeyStroke("S"), "moveDown");
+        actionMap.put("moveDown", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!isPaused) {
+                    player.move(0, 1);
+                    panel.repaint();
+                }
+            }
+        });
+
+        // Bind the LEFT key (and A)
+        inputMap.put(KeyStroke.getKeyStroke("LEFT"), "moveLeft");
+        inputMap.put(KeyStroke.getKeyStroke("A"), "moveLeft");
+        actionMap.put("moveLeft", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!isPaused) {
+                    player.move(-1, 0);
+                    panel.repaint();
+                }
+            }
+        });
+
+        // Bind the RIGHT key (and D)
+        inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "moveRight");
+        inputMap.put(KeyStroke.getKeyStroke("D"), "moveRight");
+        actionMap.put("moveRight", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!isPaused) {
+                    player.move(1, 0);
+                    panel.repaint();
+                }
+            }
+        });
+
+        // Bind ESCAPE to pause the game
+        inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "pauseGame");
+        actionMap.put("pauseGame", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pauseGame();
+            }
+        });
+    }
+    
+    // Getters of all variables required for others class
     public JPanel getGamePanel() {
         return gamePanel;
     }

@@ -23,6 +23,7 @@ public class Assets {
             textures.put(state, new HashMap<>());
         }
 
+        // Select the folders that we load from the game textures
         loadTexturesFromDirectory("/grass", CellState.GRASS);
         loadTexturesFromDirectory("/rocks", CellState.WALL);
         loadTexturesFromDirectory("/player", CellState.PLAYER);
@@ -32,12 +33,14 @@ public class Assets {
         loadTexturesFromDirectory("/air", CellState.EMPTY);
         
     }
-
+    
+    // Method that loads the textures from the games files
     private static void loadTexturesFromDirectory(String directoryPath, CellState state) {
         try {
             File directory = new File(Assets.class.getResource(directoryPath).getPath());
             File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
-
+            
+            //If the gamefiles contain textures load them
             if (files != null && files.length > 0) {
                 for (File file : files) {
                     BufferedImage texture = ImageIO.read(file);
@@ -60,6 +63,7 @@ public class Assets {
                         System.out.println("Loaded texture with ID: " + textureId + " for state: " + state);
                     }
                 }
+                System.out.println();
             }
         } catch (IOException e) {
             e.printStackTrace();

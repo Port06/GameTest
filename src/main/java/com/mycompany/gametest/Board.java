@@ -40,7 +40,8 @@ public class Board extends JPanel {
             }
         }
     }
-
+    
+    // We define al the states that a cell can have
     public void setCellState(int x, int y, int type, int textureId, int layer, int entryPortalId, int exitPortalId) {
         if (isValidCell(x, y)) {
             Cell[][] targetLayer;
@@ -149,8 +150,8 @@ public class Board extends JPanel {
         return gameMap;
     }
     
+    // Detects if a player is in the current cell
     public boolean containsPlayer(Player player) {
-        // Assuming you have a way to determine the player's position on the board
         int playerX = player.getX();
         int playerY = player.getY();
         return isInBounds(playerX, playerY);

@@ -8,6 +8,7 @@ public class Player {
     private int x;
     private int y;
     private Board currentBoard;
+    private TextBox textBox;
     private int currentTextureId;
     private int totalTextures;
     private ScheduledExecutorService animationScheduler;
@@ -17,10 +18,11 @@ public class Player {
     private static final long MOVE_COOLDOWN = 500; // Cooldown period in milliseconds
     private static final long WATER_MOVE_COOLDOWN = 1250; // Cooldown period when moving into water
 
-    public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map,  Game game) {
+    public Player(int startX, int startY, Board startBoard, int totalTextures, GameMap map,  Game game, TextBox textBox) {
         this.x = startX;
         this.y = startY;
         this.currentBoard = startBoard;
+        this.textBox = textBox;
         this.totalTextures = totalTextures;
         this.currentTextureId = 0; // Start with the first texture
         this.map = map; // Initialize the GameMap reference
@@ -114,7 +116,7 @@ public class Player {
                             currentBoard = targetBoard;
                             map.setCurrentBoard(targetBoard.getName());
                             
-                            game.addTextBox("Has cambiado al tablero: " + targetBoard.getName(), 250, 50, 300, 20);
+                            textBox.addTextBox("Has cambiado al tablero: " + targetBoard.getName(), 250, 50, 300, 20);
                             
                         } else {
                             System.out.println("Entry portal not found in target board");

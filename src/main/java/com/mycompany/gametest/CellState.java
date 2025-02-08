@@ -28,6 +28,7 @@ public enum CellState {
         return texture;
     }
 
+    // Assignation of the porper textures to each cell
     public static BufferedImage getTexture(Cell cell) {
         CellState state = cell.getState();
         int textureId = cell.getTextureId();

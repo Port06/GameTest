@@ -34,7 +34,6 @@ public class Menu {
         resumeButton.setBounds(game.getWidth() / 4 - 50, (menuPanel.getHeight() - 30) / 2, 120, 30);
         resumeButton.addActionListener(e -> {
             if (game.getPaused()) {
-                System.out.println(game.getPaused());
                 game.resumeGame();
                 game.getGamePanel().requestFocusInWindow();
                 hideMenu();
@@ -66,6 +65,11 @@ public class Menu {
         });
         switchToGameButton.setVisible(false); // Initially hidden
         menuPanel.add(switchToGameButton);
+        
+        // Set the buttons to not focusable
+        resumeButton.setFocusable(false);
+        mapEditorButton.setFocusable(false);
+        switchToGameButton.setFocusable(false);
 
         // Add the menu panel to the game's layered pane
         game.getLayeredPane().add(menuPanel, JLayeredPane.PALETTE_LAYER);
