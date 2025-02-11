@@ -259,7 +259,7 @@ public class Game extends JFrame {
         });
     }
     
-    // Getters of all variables required for others class
+    // Getters of all variables required for others classes
     public JPanel getGamePanel() {
         return gamePanel;
     }
