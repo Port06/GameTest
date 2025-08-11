@@ -11,7 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 // Class that has the main logic of the game such as creating a initial board, player movement
-// and much more. (Will be improved on in the future)
+// and much more. (Will be improved on in the future).
 public class Game extends JFrame {
     private GameMap map;
     private Player player;
